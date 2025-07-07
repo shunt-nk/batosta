@@ -1,0 +1,11 @@
+{
+  "name": "PHP + MySQL Dev",
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "php",
+  "workspaceFolder": "/var/www/html",
+  "extensions": [
+    "felixfbecker.php-debug",
+    "bmewburn.vscode-intelephense-client"
+  ],
+  "forwardPorts": [80, 3306]
+}
