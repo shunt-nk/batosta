@@ -44,8 +44,18 @@ $avatar = $stmt->fetch();
   <button type="submit">保存</button>
 </form>
 
-<?php if ($avatar): ?>
-  <p>現在の設定：<?= htmlspecialchars($avatar['gender']) ?>（レベル <?= $avatar['level'] ?>）</p>
-<?php endif; ?>
+<?php
+require 'includes/db.php';
+session_start();
+
+$user_id = $_SESSION["user"]["id"];
+$username = $_SESSION["user"]["username"];
+?>
+
+<h2><?= htmlspecialchars($username) ?> さんのアバター</h2>
+
+<div style="text-align: center;">
+  <img src="assets/avatars/avatar_default.png" alt="アバター" style="width: 200px;" />
+</div>
 
 <p><a href="dashboard.php">← ダッシュボードへ戻る</a></p>
