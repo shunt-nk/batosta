@@ -119,7 +119,7 @@ $_SESSION['study'] = [
           const sec = String(remaining % 60).padStart(2, '0');
           document.getElementById("timer").innerText = `${min}:${sec}`;
 
-          if (remaining % 10 === 0) randomStatus();
+          if (remaining % 30 === 0) randomStatus();
         }
       }, 1000);
 

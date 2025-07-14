@@ -2,7 +2,7 @@
 session_start();
 require 'includes/db.php';
 require 'includes/functions.php';
-
+include 'includes/navbar.php';
 
 
 if (!isset($_SESSION['user'])) {
@@ -18,6 +18,20 @@ $stmt = $pdo->prepare("SELECT * FROM avatars WHERE user_id = ?");
 $stats = calculateUserStats($pdo, $user_id);
 $stmt->execute([$user_id]);
 $avatar = $stmt->fetch();
+
+// 現在の装備を取得
+$stmt = $pdo->prepare("
+  SELECT e.slot, e.name
+  FROM user_avatar_equipments uae
+  JOIN equipments e ON uae.equipment_id = e.id
+  WHERE uae.user_id = ?
+");
+$stmt->execute([$user_id]);
+$equipped = [];
+foreach ($stmt->fetchAll() as $row) {
+  $equipped[$row['slot']] = $row['name'];
+}
+
 
 // 素材所持数
 $stmt = $pdo->prepare("
@@ -91,21 +105,24 @@ $logs = $stmt->fetchAll();
       height: 100%;
       background: linear-gradient(to right, orange, gold);
     }
+    .avatar-container {
+    position: relative;
+    width: 200px;
+    height: 200px;
+    margin: auto;
+    }
+    .avatar-layer {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+}
   </style>
 </head>
 <body>
 
-<aside>
-  <h2>バトスタ</h2>
-  <nav>
-    <a href="dashboard.php">🏠 ホーム</a>
-    <a href="task_register.php">✏️ 宿題を登録</a>
-    <a href="equipment_create.php">🛠 装備作成</a>
-    <a href="logout.php">🚪 ログアウト</a>
-  </nav>
-</aside>
 
-<main>
+<main style="margin-left: 200px; padding: 2rem;">
   <div class="section">
     <h2>ようこそ、<?= htmlspecialchars($user['username']) ?> さん！</h2>
     <p>レベル：<?= $avatar['level'] ?? 1 ?> / 経験値：<?= $avatar['exp'] ?? 0 ?> / 性別：<?= $avatar['gender'] ?? '不明' ?></p>
@@ -117,6 +134,12 @@ $logs = $stmt->fetchAll();
     <h2>現在のステータス</h2>
     <p>攻撃力：<?= $stats['attack'] ?> / 防御力：<?= $stats['defense'] ?></p>
   </div>
+  <div class="section">
+  <h2>あなたのアバター</h2>
+  <?= renderAvatarLayers($equipped) ?>
+  </div>
+</div>
+
 
   <div class="section">
     <h3>今日の宿題履歴（<?= count($logs) ?>件）</h3>

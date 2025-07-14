@@ -30,6 +30,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['equipment_id'])) {
       break;
     }
   }
+  
 
   if ($canCraft) {
     // 素材を消費
@@ -65,6 +66,15 @@ $user_materials = [];
 foreach ($stmt->fetchAll() as $row) {
   $user_materials[$row['material_id']] = $row['quantity'];
 }
+
+foreach ($requirements as $r) {
+  list($mat, $qty) = explode(":", $r);
+  // 所持数を表示
+  $mat_id = array_search($mat, array_column($materials, 'name')); // 逆引き
+  $have = $user_materials[$mat_id] ?? 0;
+  echo "<li>$mat × $qty（所持：$have）</li>";
+}
+
 ?>
 
 <!DOCTYPE html>

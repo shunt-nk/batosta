@@ -20,28 +20,40 @@ $stmt = $pdo->prepare("INSERT INTO study_logs (user_id, subject, type, duration_
                        VALUES (?, ?, ?, ?, ?, ?)");
 $stmt->execute([$user_id, $subject, $type, $duration, $started_at, $ended_at]);
 
-// ② 素材報酬をランダムに生成（1〜3種類、各1〜5個）
-$stmt = $pdo->query("SELECT * FROM materials");
-$materials = $stmt->fetchAll(PDO::FETCH_ASSOC);
-shuffle($materials);
-$reward_items = array_slice($materials, 0, rand(1, 3)); // ランダムに1〜3種
+// 基本報酬倍率（勉強時間が長いほど多くなる）
+$reward_factor = ceil($duration / 10); // 5分→1, 15分→2, 30分→3, 60分→6
+
+$reward_items = array_slice($materials, 0, rand(1, 3));
 
 $rewards = [];
 foreach ($reward_items as $material) {
-  $count = rand(1, 5);
-  $rewards[] = ['name' => $material['name'], 'count' => $count];
+  $base = rand(1, 3); // 基本報酬数（ベース）
+  $amount = $base * $reward_factor;
+
+  // イベントログによってブースト・減少（簡易処理）
+  foreach ($event_log as $event) {
+    if (str_contains($event, '宝箱')) {
+      $amount += rand(1, 2);
+    } elseif (str_contains($event, '罠')) {
+      $amount = max(1, $amount - rand(1, 2));
+    }
+  }
+
+  $rewards[] = ['name' => $material['name'], 'count' => $amount];
+
+}
 
   // ③ user_materials に保存（すでにあれば加算）
   $check = $pdo->prepare("SELECT * FROM user_materials WHERE user_id = ? AND material_id = ?");
   $check->execute([$user_id, $material['id']]);
   if ($row = $check->fetch()) {
     $update = $pdo->prepare("UPDATE user_materials SET quantity = quantity + ? WHERE id = ?");
-    $update->execute([$count, $row['id']]);
+    $update->execute([$amount, $row['id']]);
   } else {
     $insert = $pdo->prepare("INSERT INTO user_materials (user_id, material_id, quantity) VALUES (?, ?, ?)");
-    $insert->execute([$user_id, $material['id'], $count]);
+    $insert->execute([$user_id, $material['id'], $amount]);
   }
-}
+
 
 // セッションをクリア
 unset($_SESSION["study"]);

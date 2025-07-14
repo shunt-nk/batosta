@@ -51,6 +51,20 @@ foreach ($stmt->fetchAll() as $row) {
   $current[$row['slot']] = $row;
 }
 ?>
+<style>
+.avatar-container {
+  position: relative;
+  width: 200px;
+  height: 200px;
+  margin: auto;
+}
+.avatar-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+}
+</style>
 
 <!DOCTYPE html>
 <html lang="ja">
@@ -79,6 +93,11 @@ foreach ($stmt->fetchAll() as $row) {
       </li>
     <?php endforeach; ?>
   </ul>
+</div>
+
+<div class="section">
+  <h2>アバターのプレビュー</h2>
+  <?= renderAvatarLayers($current) ?>
 </div>
 
 <?php foreach (['head', 'body', 'weapon', 'shield', 'feet'] as $slot): ?>
