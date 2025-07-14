@@ -36,35 +36,29 @@ $stmt = $pdo->prepare("
   WHERE ue.user_id = ?
 ");
 $stmt->execute([$user_id]);
-$my_equipments = $stmt->fetchAll(PDO::FETCH_GROUP|PDO::FETCH_ASSOC);
+$my_equipments_raw = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+// slotごとに再構成
+$my_equipments = [];
+foreach ($my_equipments_raw as $row) {
+  $slot = $row['slot'];
+  $my_equipments[$slot][] = $row;
+}
 
 // 現在の着用中装備
 $stmt = $pdo->prepare("
-  SELECT slot, equipment_id, e.name
+  SELECT uae.slot, uae.equipment_id, e.name
   FROM user_avatar_equipments uae
   JOIN equipments e ON uae.equipment_id = e.id
   WHERE uae.user_id = ?
 ");
+
 $stmt->execute([$user_id]);
 $current = [];
 foreach ($stmt->fetchAll() as $row) {
   $current[$row['slot']] = $row;
 }
 ?>
-<style>
-.avatar-container {
-  position: relative;
-  width: 200px;
-  height: 200px;
-  margin: auto;
-}
-.avatar-layer {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-}
-</style>
 
 <!DOCTYPE html>
 <html lang="ja">
@@ -72,50 +66,81 @@ foreach ($stmt->fetchAll() as $row) {
   <meta charset="UTF-8">
   <title>アバター着せ替え</title>
   <style>
-    body { font-family: sans-serif; padding: 2rem; background: #f4f4f4; }
-    h2 { margin-top: 2rem; }
-    .section { background: white; padding: 1rem; margin-bottom: 2rem; border-radius: 10px; }
-    form { display: inline-block; margin: 0.5rem; }
-    button { padding: 0.5rem 1rem; border: none; border-radius: 5px; background: #008cba; color: white; cursor: pointer; }
+  body {
+    margin: 0;
+    display: flex;
+    font-family: sans-serif;
+    background: #f4f4f4;
+  }
+  .container {
+    display: flex;
+    min-height: 100vh;
+  }
+  .content {
+    flex: 1;
+    padding: 2rem;
+    background: #f4f4f4;
+  }
+    .section { 
+      background: white; 
+      padding: 1rem; 
+      margin-bottom: 2rem; 
+      border-radius: 10px; 
+    }
+    form { 
+      display: inline-block; 
+    }
+    button { 
+      padding: 0.5rem 1rem; 
+      border: none; 
+      border-radius: 5px; 
+      background: #008cba; 
+      color: white;
+      cursor: pointer; }
   </style>
 </head>
 <body>
+<div class="container">
+<?php include 'includes/navbar.php'; ?>
+  <main class="content">
 
-<h1>アバターの着せ替え</h1>
-<?php if (isset($message)) echo "<p>$message</p>"; ?>
-
-<div class="section">
-  <h2>現在の装備</h2>
-  <ul>
-    <?php foreach (['head', 'body', 'weapon', 'shield', 'feet'] as $slot): ?>
-      <li><?= ucfirst($slot) ?>:
-        <?= isset($current[$slot]) ? htmlspecialchars($current[$slot]['name']) : 'なし' ?>
-      </li>
-    <?php endforeach; ?>
-  </ul>
-</div>
-
-<div class="section">
-  <h2>アバターのプレビュー</h2>
-  <?= renderAvatarLayers($current) ?>
-</div>
-
-<?php foreach (['head', 'body', 'weapon', 'shield', 'feet'] as $slot): ?>
-  <?php if (isset($my_equipments[$slot])): ?>
+    <h1>アバターの着せ替え</h1>
+    <?php if (isset($message)) echo "<p>$message</p>"; ?>
+    
     <div class="section">
-      <h2><?= ucfirst($slot) ?> を選ぶ</h2>
-      <?php foreach ($my_equipments[$slot] as $eq): ?>
-        <form method="POST">
-          <input type="hidden" name="slot" value="<?= $slot ?>">
-          <input type="hidden" name="equipment_id" value="<?= $eq['equipment_id'] ?>">
-          <button type="submit"><?= htmlspecialchars($eq['name']) ?></button>
-        </form>
-      <?php endforeach; ?>
+      <h2>現在の装備</h2>
+      <ul>
+        <?php foreach (['head', 'body', 'weapon', 'shield', 'feet'] as $slot): ?>
+          <li><?= ucfirst($slot) ?>:
+            <?= isset($current[$slot]) ? htmlspecialchars($current[$slot]['name']) : 'なし' ?>
+          </li>
+        <?php endforeach; ?>
+      </ul>
     </div>
-  <?php endif; ?>
-<?php endforeach; ?>
+    
+    <div class="section">
+      <h2>アバターのプレビュー</h2>
+      <?= renderAvatarLayers($current) ?>
+    </div>
+    
+    <?php foreach (['head', 'body', 'weapon', 'shield', 'feet'] as $slot): ?>
+      <?php if (isset($my_equipments[$slot])): ?>
+        <div class="section">
+          <h2><?= ucfirst($slot) ?> を選ぶ</h2>
+          <?php foreach ($my_equipments[$slot] as $eq): ?>
+            <form method="POST">
+              <input type="hidden" name="slot" value="<?= $slot ?>">
+              <input type="hidden" name="equipment_id" value="<?= $eq['equipment_id'] ?>">
+              <button type="submit"><?= htmlspecialchars($eq['name']) ?></button>
+            </form>
+          <?php endforeach; ?>
+        </div>
+      <?php endif; ?>
+    <?php endforeach; ?>
+    
+    <p><a href="dashboard.php">← ホームへ戻る</a></p>
 
-<p><a href="dashboard.php">← ホームへ戻る</a></p>
-
+  </main>  
+</div>  
 </body>
 </html>

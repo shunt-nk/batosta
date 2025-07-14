@@ -15,35 +15,62 @@ $started_at = $_SESSION["study"]["started_at"];
 $ended_at = date("Y-m-d H:i:s");
 $event_log = $_SESSION["study"]["event_log"];
 
-// ① study_logsに保存
+// レアイベント追加
+$rare_events = [];
+if (rand(1, 10) === 1) $rare_events[] = "巨大な宝箱を発見した！";
+if (rand(1, 20) === 1) $rare_events[] = "ダンジョンのボスを討伐した！";
+$event_log = array_merge($event_log, $rare_events);
+
+// 勉強記録保存
 $stmt = $pdo->prepare("INSERT INTO study_logs (user_id, subject, type, duration_minutes, started_at, ended_at)
                        VALUES (?, ?, ?, ?, ?, ?)");
 $stmt->execute([$user_id, $subject, $type, $duration, $started_at, $ended_at]);
 
-// 基本報酬倍率（勉強時間が長いほど多くなる）
-$reward_factor = ceil($duration / 10); // 5分→1, 15分→2, 30分→3, 60分→6
+// 素材取得
+$stmt = $pdo->query("SELECT * FROM materials");
+$materials = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-$reward_items = array_slice($materials, 0, rand(1, 3));
-
-$rewards = [];
-foreach ($reward_items as $material) {
-  $base = rand(1, 3); // 基本報酬数（ベース）
-  $amount = $base * $reward_factor;
-
-  // イベントログによってブースト・減少（簡易処理）
-  foreach ($event_log as $event) {
-    if (str_contains($event, '宝箱')) {
-      $amount += rand(1, 2);
-    } elseif (str_contains($event, '罠')) {
-      $amount = max(1, $amount - rand(1, 2));
-    }
-  }
-
-  $rewards[] = ['name' => $material['name'], 'count' => $amount];
-
+// ランダムに3種選ぶ（重複なし）
+$reward_items = [];
+$indexes = array_rand($materials, 3);
+foreach ((array)$indexes as $i) {
+  $reward_items[] = $materials[$i];
 }
 
-  // ③ user_materials に保存（すでにあれば加算）
+// rare素材チェック（骨・魔石が含まれない場合追加）
+$rare_names = ['水晶', '魔石'];
+$has_rare = false;
+foreach ($reward_items as $item) {
+  if (in_array($item['name'], $rare_names)) {
+    $has_rare = true;
+    break;
+  }
+}
+if (!$has_rare) {
+  $rare_pool = array_filter($materials, fn($m) => in_array($m['name'], $rare_names));
+  if (!empty($rare_pool)) {
+    $reward_items[] = $rare_pool[array_rand($rare_pool)];
+  }
+}
+
+// 報酬計算
+$reward_factor = ceil($duration / 5); // 5分→1, 15分→3, 60分→12
+$rewards = [];
+
+foreach ($reward_items as $material) {
+  $base = rand(2, 4);
+  $amount = $base * $reward_factor;
+
+  foreach ($event_log as $event) {
+    if (str_contains($event, '宝箱')) $amount += rand(1, 2);
+    if (str_contains($event, '罠')) $amount = max(1, $amount - rand(1, 2));
+    if (str_contains($event, '巨大')) $amount += 5;
+    if (str_contains($event, 'ボス')) $amount += 8;
+  }
+
+  $rewards[] = ['id' => $material['id'], 'name' => $material['name'], 'count' => $amount];
+
+  // user_materials 更新
   $check = $pdo->prepare("SELECT * FROM user_materials WHERE user_id = ? AND material_id = ?");
   $check->execute([$user_id, $material['id']]);
   if ($row = $check->fetch()) {
@@ -53,12 +80,34 @@ foreach ($reward_items as $material) {
     $insert = $pdo->prepare("INSERT INTO user_materials (user_id, material_id, quantity) VALUES (?, ?, ?)");
     $insert->execute([$user_id, $material['id'], $amount]);
   }
+}
 
+// イベントまとめ表示
+$event_summary = [];
+foreach ($event_log as $event) {
+  $event_summary[$event] = ($event_summary[$event] ?? 0) + 1;
+}
 
-// セッションをクリア
+$event_display = [];
+foreach ($event_summary as $event => $count) {
+  if (str_contains($event, '宝箱') && !str_contains($event, '巨大')) {
+    $event_display[] = "宝箱を{$count}個見つけた！";
+  } elseif (str_contains($event, '罠')) {
+    $event_display[] = "罠に{$count}回引っかかった…";
+  } elseif (str_contains($event, '敵')) {
+    $event_display[] = "敵と{$count}回遭遇した！";
+  } elseif (str_contains($event, 'ボス')) {
+    $event_display[] = "ボスを討伐した！";
+  } elseif (str_contains($event, '巨大')) {
+    $event_display[] = "巨大な宝箱を見つけた！";
+  } else {
+    $event_display[] = "{$event} × {$count}回";
+  }
+}
+
+// セッションクリア
 unset($_SESSION["study"]);
 ?>
-
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -109,7 +158,7 @@ unset($_SESSION["study"]);
   <h2>報酬素材</h2>
   <ul>
     <?php foreach ($rewards as $reward): ?>
-      <li class="reward"><?= $reward['name'] ?> × <?= $reward['count'] ?></li>
+      <li class="reward"><?= htmlspecialchars($reward['name']) ?> × <?= $reward['count'] ?></li>
     <?php endforeach; ?>
   </ul>
 
@@ -118,12 +167,11 @@ unset($_SESSION["study"]);
 </div>
 
 <script>
-  const events = <?= json_encode($event_log, JSON_UNESCAPED_UNICODE) ?>;
+  const events = <?= json_encode($event_display, JSON_UNESCAPED_UNICODE) ?>;
   const eventArea = document.getElementById("eventLogArea");
   const rewardSection = document.getElementById("rewardSection");
 
   let i = 0;
-
   function showNextEvent() {
     if (i < events.length) {
       const p = document.createElement("p");
@@ -136,7 +184,6 @@ unset($_SESSION["study"]);
       rewardSection.classList.remove("hidden");
     }
   }
-
   showNextEvent();
 </script>
 
