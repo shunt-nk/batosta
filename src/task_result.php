@@ -31,14 +31,11 @@ $stmt = $pdo->query("SELECT * FROM materials");
 $materials = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 // ランダムに3種選ぶ（重複なし）
-$reward_items = [];
-$indexes = array_rand($materials, 3);
-foreach ((array)$indexes as $i) {
-  $reward_items[] = $materials[$i];
-}
+shuffle($materials);
+$reward_items = array_slice($materials, 0, 3);
 
 // rare素材チェック（骨・魔石が含まれない場合追加）
-$rare_names = ['水晶', '魔石'];
+$rare_names = ['水晶', '魔石','布'];
 $has_rare = false;
 foreach ($reward_items as $item) {
   if (in_array($item['name'], $rare_names)) {
