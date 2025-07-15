@@ -7,24 +7,19 @@ $types = $_SESSION['types'] ?? $default_types;
 $times = $_SESSION['times'] ?? $default_times;
 ?>
 <style>
-  body {
-    margin: 0;
-    display: flex;
-    font-family: sans-serif;
-    background: #f4f4f4;
-  }
-
-  .container {
-    display: flex;
-    min-height: 100vh;
-  }
-
-
-  .content {
-    flex: 1;
-    padding: 2rem;
-    background: #f4f4f4;
-  }
+    body {
+      margin: 0;
+      display: flex;
+      background: #5D73A9;
+      color: #fff;
+    }
+    .container {
+      display: flex;
+      min-height: 100vh;
+    }
+    .content {
+      padding: 2rem;
+    }
 
 </style>
 
@@ -70,7 +65,7 @@ $times = $_SESSION['times'] ?? $default_times;
       
       <div id="confirmModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%;
         background:rgba(0,0,0,0.5); justify-content:center; align-items:center;">
-      <div style="background:#fff; padding:20px; border-radius:10px; width:300px; text-align:center;">
+      <div style="background:#484E88; padding:20px; border-radius:10px; width:300px; text-align:center;">
         <h3>この内容で宿題を始めますか？</h3>
         <p id="confirmContent"></p>
         <form method="POST" action="task_timer.php">

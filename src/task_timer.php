@@ -76,7 +76,7 @@ $_SESSION['study'] = [
   </style>
 </head>
 <body>
-  <h2>ダンジョン攻略準備中</h2>
+  <h2>ダンジョン攻略中</h2>
   <div id="timer"><?= $minutes ?>:00</div>
   <div id="status">▶ タイマーを開始してください</div>
   <div id="buttons">

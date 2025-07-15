@@ -20,21 +20,19 @@ $stmt = $pdo->query("
 $users = $stmt->fetchAll();
 ?>
 <style>
-      body {
+    body {
       margin: 0;
       display: flex;
-      font-family: sans-serif;
-      background: #f4f4f4;
+      background: #5D73A9;
+      color: #fff;
     }
     .container {
-    display: flex;
-    min-height: 100vh;
+      display: flex;
+      min-height: 100vh;
     }
     .content {
-    flex: 1;
-    padding: 2rem;
-    background: #f4f4f4;
-  }
+      padding: 2rem;
+    }
 
 </style>
 

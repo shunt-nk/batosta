@@ -89,18 +89,15 @@ foreach ($current as $item) {
     body {
       margin: 0;
       display: flex;
-      font-family: sans-serif;
-      background: #f4f4f4;
+      background: #5D73A9;
     }
     .container {
-    display: flex;
-    min-height: 100vh;
+      display: flex;
+      min-height: 100vh;
     }
     .content {
-    flex: 1;
-    padding: 2rem;
-    background: #f4f4f4;
-  }
+      padding: 2rem;
+    }
 
     .section {
       background: white;
@@ -184,7 +181,6 @@ foreach ($current as $item) {
       </div>
     </div>
 
-    <p><a href="dashboard.php">← ホームへ戻る</a></p>
   </main>
 </div>
 </body>

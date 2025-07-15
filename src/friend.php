@@ -48,21 +48,20 @@ $friends = $stmt->fetchAll();
 ?>
 
 <style>
-      body {
-      margin: 0;
-      display: flex;
-      font-family: sans-serif;
-      background: #f4f4f4;
-    }
-    .container {
+  body {
+    margin: 0;
+    display: flex;
+    background: #5D73A9;
+    color: #fff;
+  }
+  .container {
     display: flex;
     min-height: 100vh;
-    }
-    .content {
-    flex: 1;
-    padding: 2rem;
-    background: #f4f4f4;
   }
+  .content {
+    padding: 2rem;
+  }
+
 
 </style>
 

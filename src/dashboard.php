@@ -62,29 +62,39 @@ $logs = $stmt->fetchAll();
     body {
       margin: 0;
       display: flex;
-      font-family: sans-serif;
-      background: #f4f4f4;
+      background: #5D73A9;
     }
     .container {
-    display: flex;
-    min-height: 100vh;
+      display: flex;
+      min-height: 100vh;
     }
     .content {
-    flex: 1;
-    padding: 2rem;
-    background: #f4f4f4;
-  }
-
+      padding: 2rem;
+    }
     main {
       flex: 1;
       padding: 2rem;
     }
-    .section {
-      background: white;
+    section {
+      background: #484E88;
       margin-bottom: 2rem;
       padding: 1.5rem;
-      border-radius: 10px;
-      box-shadow: 0 2px 5px #ccc;
+      border-radius: 20px;
+      color: white;
+    }
+
+    .hw{
+      margin-top: 2rem;
+      margin-right: 1.5rem;
+      width: 400px;
+      height: 690px;
+    }
+    .mt{
+      margin-top: 2rem;
+      width: 400px;
+      height: 690px;
+
+
     }
     .progress-bar {
       background: #eee;
@@ -116,25 +126,25 @@ $logs = $stmt->fetchAll();
  <?php include 'includes/navbar.php'; ?>
 
  <main class="content">
-   <div class="section">
+   <section>
      <h2>ようこそ、<?= htmlspecialchars($user['username']) ?> さん！</h2>
      <p>レベル：<?= $avatar['level'] ?? 1 ?> / 経験値：<?= $avatar['exp'] ?? 0 ?> / 性別：<?= $avatar['gender'] ?? '不明' ?></p>
      <div class="progress-bar">
        <div class="progress" style="width: <?= ($avatar['exp'] % 100) ?>%;"></div>
       </div>
-    </div>
-    <div class="section">
+    </section>
+    <section>
       <h2>現在のステータス</h2>
       <p>攻撃力：<?= $stats['attack'] ?> / 防御力：<?= $stats['defense'] ?></p>
-    </div>
-    <div class="section">
+    </section>
+    <section>
       <h2>あなたのアバター</h2>
       <?= renderAvatarLayers($equipped) ?>
-    </div>
+    </section>
   </div>
   
   
-  <div class="section">
+  <section class="hw">
     <h3>今日の宿題履歴（<?= count($logs) ?>件）</h3>
     <ul>
       <?php foreach ($logs as $log): ?>
@@ -144,9 +154,9 @@ $logs = $stmt->fetchAll();
           <li>まだ今日の宿題はありません</li>
           <?php endif; ?>
         </ul>
-      </div>
+      </section>
       
-      <div class="section">
+      <section class="mt">
         <h3>所持素材</h3>
         <ul>
           <?php foreach ($materials as $m): ?>
@@ -156,7 +166,7 @@ $logs = $stmt->fetchAll();
           <li>素材はまだありません</li>
           <?php endif; ?>
         </ul>
-      </div>
+      </section>
     </main>
   </div>
     

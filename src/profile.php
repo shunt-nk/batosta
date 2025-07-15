@@ -31,20 +31,18 @@ $equipments = $stmt->fetchAll(PDO::FETCH_KEY_PAIR); // ['head' => 'head.png', ..
 
 <style>
     body {
-    margin: 0;
-    display: flex;
-    font-family: sans-serif;
-    background: #f4f4f4;
+      margin: 0;
+      display: flex;
+      background: #5D73A9;
+      color: #fff;
     }
     .container {
-    display: flex;
-    min-height: 100vh;
+      display: flex;
+      min-height: 100vh;
     }
     .content {
-    flex: 1;
-    padding: 2rem;
-    background: #f4f4f4;
-  }
+      padding: 2rem;
+    }
 
 </style>
 <div class="container">

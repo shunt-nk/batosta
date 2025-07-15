@@ -82,19 +82,19 @@ foreach ($stmt->fetchAll() as $row) {
     body {
       margin: 0;
       display: flex;
-      font-family: sans-serif;
-      background: #f4f4f4;
+      background: #5D73A9;
+      color: #000;
     }
     .container {
-    display: flex;
-    min-height: 100vh;
-  }
-
-  .content {
-    flex: 1;
-    padding: 2rem;
-    background: #f4f4f4;
-  }
+      display: flex;
+      min-height: 100vh;
+    }
+    .content {
+      padding: 2rem;
+    }
+    h2{
+      color: #fff;
+    }
 
     .item { 
       background: white; 
@@ -103,7 +103,8 @@ foreach ($stmt->fetchAll() as $row) {
       border-radius: 8px; 
     }
     form { 
-      display: inline; 
+      display: grid; 
+
     }
     button { 
       padding: 0.5rem 1rem; 
@@ -160,7 +161,6 @@ foreach ($stmt->fetchAll() as $row) {
       </div>
     <?php endforeach; ?>
     
-    <p><a href="dashboard.php">← ホームに戻る</a></p>
   </main>
 </div>
 

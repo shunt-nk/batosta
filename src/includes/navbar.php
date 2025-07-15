@@ -1,7 +1,5 @@
 <style>
   nav {
-    width: 200px;
-    background: #333;
     color: white;
     padding: 1rem;
   }
@@ -17,7 +15,7 @@
       text-decoration: underline;
     }
 </style>
-<aside style="width: 200px; background: #333; color: white; height: 100vh; padding: 1rem;">
+<aside style="width: 200px; background: #28385E; color: white; height: 100vh; padding: 1rem;">
   <h2 style="font-size: 1.2rem;">バトスタ</h2>
   <nav>
     <a href="dashboard.php">🏠 ホーム</a>
