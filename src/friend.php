@@ -45,6 +45,9 @@ $stmt = $pdo->prepare("
 ");
 $stmt->execute([$user_id]);
 $friends = $stmt->fetchAll();
+
+$current_page = 'friend'; 
+
 ?>
 
 <style>
@@ -68,7 +71,6 @@ $friends = $stmt->fetchAll();
 <div class="container">
 <?php include 'includes/navbar.php'; ?>
   <main class="content">
-    <h1>フレンド</h1>
   
     <?php if ($message): ?>
       <p><?= htmlspecialchars($message) ?></p>

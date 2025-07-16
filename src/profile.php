@@ -27,6 +27,9 @@ $stmt = $pdo->prepare("
 ");
 $stmt->execute([$user_id]);
 $equipments = $stmt->fetchAll(PDO::FETCH_KEY_PAIR); // ['head' => 'head.png', ...]
+
+$current_page = 'profile'; 
+
 ?>
 
 <style>

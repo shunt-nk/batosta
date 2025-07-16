@@ -71,6 +71,9 @@ $user_materials = [];
 foreach ($stmt->fetchAll() as $row) {
   $user_materials[$row['material_id']] = $row['quantity'];
 }
+
+$current_page = 'create'; 
+
 ?>
 
 <!DOCTYPE html>
@@ -127,7 +130,6 @@ foreach ($stmt->fetchAll() as $row) {
 
   <main class="content">
 
-    <h2>装備を作る</h2>
     
     <?php if (isset($message)) echo "<p>$message</p>"; ?>
     

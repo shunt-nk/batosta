@@ -78,6 +78,9 @@ foreach ($current as $item) {
   $total_atk += $item['attack'] ?? 0;
   $total_def += $item['defense'] ?? 0;
 }
+
+$current_page = 'customize'; 
+
 ?>
 
 <!DOCTYPE html>
@@ -85,64 +88,151 @@ foreach ($current as $item) {
 <head>
   <meta charset="UTF-8">
   <title>アバター着せ替え</title>
-  <style>
-    body {
-      margin: 0;
-      display: flex;
-      background: #5D73A9;
-    }
-    .container {
-      display: flex;
-      min-height: 100vh;
-    }
-    .content {
-      padding: 2rem;
-    }
-
-    .section {
-      background: white;
-      padding: 1rem;
-      margin-bottom: 2rem;
-      border-radius: 10px;
-    }
-    .equip-item {
-      display: flex;
-      align-items: center;
-      margin-bottom: 0.8rem;
-      gap: 1rem;
-    }
-    .equip-item img {
-      width: 50px;
-      height: 50px;
-      object-fit: contain;
-    }
-    button {
-      padding: 0.5rem 1rem;
-      border: none;
-      border-radius: 5px;
-      background: #008cba;
-      color: white;
-      cursor: pointer;
-    }
-    .avatar-container {
-      position: relative;
-      width: 200px;
-      height: 200px;
-      margin-bottom: 1rem;
-    }
-    .avatar-layer {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-    }
-  </style>
 </head>
+<style>
+  /* avatar_customize.css */
+
+body {
+  margin: 0;
+  display: flex;
+  background: #5D73A9;
+  font-family: sans-serif;
+  color: #fff;
+}
+
+.container {
+  display: flex;
+  min-height: 100vh;
+  width: 100%;
+}
+
+.content {
+  padding: 2rem;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.section {
+  background: #fff;
+  color: #333;
+  padding: 1rem;
+  border-radius: 10px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+.avatar-preview-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  flex: 1;
+}
+
+.avatar-container {
+  position: relative;
+  width: 200px;
+  height: 200px;
+}
+
+.avatar-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+}
+
+.status-box {
+  display: flex;
+  gap: 2rem;
+  font-weight: bold;
+  font-size: 1.2rem;
+  justify-content: center;
+}
+
+.slot-icons {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+
+.slot-icons button {
+  background: #fff;
+  border: none;
+  border-radius: 8px;
+  width: 50px;
+  height: 50px;
+  cursor: pointer;
+  padding: 0;
+}
+
+.slot-icons .active {
+  background: linear-gradient(135deg, #FF5F7E, #FFA35C);
+}
+
+.equip-preview {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  background: #DB9963;
+  color: white;
+  padding: 1rem;
+  border-radius: 10px;
+}
+
+.equip-preview img {
+  width: 80px;
+  height: 80px;
+}
+
+.equip-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.equip-grid .item {
+  background: #fff;
+  border-radius: 8px;
+  width: 60px;
+  height: 60px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  position: relative;
+}
+
+.equip-grid .locked::after {
+  content: "";
+  background: rgba(0,0,0,0.5);
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 8px;
+}
+
+button.equip-button {
+  margin-left: auto;
+  padding: 0.5rem 1rem;
+  background: #008cba;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+</style>
+
 <body>
 <div class="container">
   <?php include 'includes/navbar.php'; ?>
   <main class="content">
-    <h1>アバターの着せ替え</h1>
     <?php if (isset($message)) echo "<p>$message</p>"; ?>
 
     <div style="display: flex; gap: 2rem;">

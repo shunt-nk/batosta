@@ -18,6 +18,9 @@ $stmt = $pdo->query("
   ORDER BY total_minutes DESC
 ");
 $users = $stmt->fetchAll();
+
+$current_page = 'ranking'; 
+
 ?>
 <style>
     body {

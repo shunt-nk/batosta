@@ -51,6 +51,9 @@ $stmt = $pdo->prepare("
 ");
 $stmt->execute([$user_id, $today]);
 $logs = $stmt->fetchAll();
+
+$current_page = 'home'; 
+
 ?>
 
 <!DOCTYPE html>
@@ -124,10 +127,8 @@ $logs = $stmt->fetchAll();
 
 <div class="container">
  <?php include 'includes/navbar.php'; ?>
-
  <main class="content">
    <section>
-     <h2>ようこそ、<?= htmlspecialchars($user['username']) ?> さん！</h2>
      <p>レベル：<?= $avatar['level'] ?? 1 ?> / 経験値：<?= $avatar['exp'] ?? 0 ?> / 性別：<?= $avatar['gender'] ?? '不明' ?></p>
      <div class="progress-bar">
        <div class="progress" style="width: <?= ($avatar['exp'] % 100) ?>%;"></div>

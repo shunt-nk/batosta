@@ -42,6 +42,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['equip_id'])) {
     exit;
   }
 }
+
+$current_page = 'title'; 
+
 ?>
 
 <style>
@@ -64,7 +67,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['equip_id'])) {
 <?php include 'includes/navbar.php'; ?>
 <main class="content">
 
-  <h1>称号</h1>
 
   <!-- フィルター -->
   <div>
