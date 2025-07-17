@@ -1,0 +1,186 @@
+/* avatar_customize.css */
+
+body {
+  margin: 0;
+  font-family: "Noto Sans JP", sans-serif;
+  background-color: #5d73a9;
+  color: #fff;
+  overflow-x: hidden;
+}
+
+.container {
+  display: flex;
+  min-height: 100vh;
+  width: 100%;
+}
+
+.content {
+  flex: 1;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  overflow: hidden;
+}
+
+h1 {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+}
+
+.customize-grid {
+  display: flex;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+.left-panel {
+  flex: 1;
+  min-width: 300px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.right-panel {
+  flex: 1;
+  min-width: 300px;
+  background-color: #444b8a;
+  padding: 1rem;
+  border-radius: 10px;
+}
+
+.avatar-preview-wrapper {
+  width: 220px;
+  height: 280px;
+  position: relative;
+  background: #fff;
+  border-radius: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+}
+
+.avatar-container {
+  position: relative;
+  width: 180px;
+  height: 240px;
+}
+
+.avatar-layer {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  z-index: 1;
+}
+
+.slot-icon {
+  position: absolute;
+  width: 36px;
+  height: 36px;
+  z-index: 2;
+  opacity: 0.7;
+}
+
+.slot-icon[data-slot="head"] {
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.slot-icon[data-slot="body"] {
+  top: 60px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.slot-icon[data-slot="weapon"] {
+  bottom: 10px;
+  left: 20px;
+}
+
+.slot-icon[data-slot="shield"] {
+  bottom: 10px;
+  right: 20px;
+}
+
+.slot-icon[data-slot="feet"] {
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.status-summary {
+  font-size: 1.1rem;
+  margin-top: 0.5rem;
+}
+
+.preview-detail {
+  background-color: #fff;
+  color: #333;
+  padding: 1rem;
+  border-radius: 10px;
+  width: 100%;
+  min-height: 160px;
+}
+
+.preview-detail h3 {
+  font-size: 1.2rem;
+  margin-bottom: 0.5rem;
+}
+
+.preview-item {
+  max-width: 120px;
+  text-align: center;
+  margin: 0 auto;
+}
+
+.preview-item img {
+  max-width: 100%; /* 幅はコンテナに収める */
+  max-height: 80px; /* 高さの上限を指定 */
+  object-fit: contain; /* アスペクト比を保ちつつ収める */
+  display: block;
+  margin: 0 auto;
+}
+
+.equip-section {
+  margin-bottom: 2rem;
+}
+
+.equip-section h2 {
+  font-size: 1.2rem;
+  margin-bottom: 0.5rem;
+  color: #fff;
+}
+
+.equip-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+  gap: 10px;
+}
+
+.equip-thumb {
+  background: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 5px;
+  width: 60px;
+  height: 60px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s;
+}
+
+.equip-thumb:hover {
+  transform: scale(1.1);
+}
+
+.equip-thumb img {
+  width: 100%;
+  height: auto;
+}

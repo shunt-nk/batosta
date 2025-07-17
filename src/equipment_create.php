@@ -9,6 +9,14 @@ if (!isset($_SESSION['user'])) {
 
 $user_id = $_SESSION['user']['id'];
 
+$slot_labels = [
+  'head' => '頭防具',
+  'body' => '体防具',
+  'weapon' => '武器',
+  'shield' => '盾',
+  'feet' => '足防具'
+];
+
 // 作成処理（POST）
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['equipment_id'])) {
   $eid = (int)$_POST['equipment_id'];
@@ -94,6 +102,8 @@ $current_page = 'create';
     }
     .content {
       padding: 2rem;
+      flex: 1;
+
     }
     h2{
       color: #fff;
@@ -104,10 +114,6 @@ $current_page = 'create';
       padding: 1rem; 
       margin-bottom: 1rem; 
       border-radius: 8px; 
-    }
-    form { 
-      display: grid; 
-
     }
     button { 
       padding: 0.5rem 1rem; 
@@ -121,7 +127,26 @@ $current_page = 'create';
       background: gray; 
       cursor: not-allowed; 
     }
-  </style>
+
+    .equipment-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1.5rem;
+      max-width: 1000px;
+      margin: 0 auto; /* 中央寄せ */
+    }
+
+    .item {
+      background: white;
+      padding: 1rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+</style>
 </head>
 <body>
 
@@ -132,37 +157,37 @@ $current_page = 'create';
 
     
     <?php if (isset($message)) echo "<p>$message</p>"; ?>
-    
-    <?php foreach ($equipments as $eq): ?>
-      <div class="item">
-        <strong><?= htmlspecialchars($eq['name']) ?>（<?= $eq['slot'] ?>）</strong><br>
-        必要素材：
-        <ul>
-          <?php
-          $requirements = explode(",", $eq['materials']);
-          $canMake = true;
-    
-          foreach ($requirements as $r) {
-            list($mat, $qty) = explode(":", $r);
-            $qty = (int)$qty;
-            $mat_id = $material_map[$mat] ?? null;
-            $have = $mat_id && isset($user_materials[$mat_id]) ? $user_materials[$mat_id] : 0;
-    
-            echo "<li>{$mat} × {$qty}（所持：{$have}）</li>";
-    
-            if ($have < $qty) {
-              $canMake = false;
+    <div class="equipment-grid">
+      <?php foreach ($equipments as $eq): ?>
+        <div class="item">
+          <strong><?= htmlspecialchars($eq['name']) ?>（<?= $eq['slot'] ?>）</strong><br>
+          必要素材：
+          <ul>
+            <?php
+            $requirements = explode(",", $eq['materials']);
+            $canMake = true;
+      
+            foreach ($requirements as $r) {
+              list($mat, $qty) = explode(":", $r);
+              $qty = (int)$qty;
+              $mat_id = $material_map[$mat] ?? null;
+              $have = $mat_id && isset($user_materials[$mat_id]) ? $user_materials[$mat_id] : 0;
+      
+              echo "<li>{$mat} × {$qty}（所持：{$have}）</li>";
+      
+              if ($have < $qty) {
+                $canMake = false;
+              }
             }
-          }
-          ?>
-        </ul>
-        <form method="POST">
-          <input type="hidden" name="equipment_id" value="<?= $eq['id'] ?>">
-          <button type="submit" <?= $canMake ? '' : 'disabled' ?>>作る</button>
-        </form>
-      </div>
-    <?php endforeach; ?>
-    
+            ?>
+          </ul>
+          <form method="POST">
+            <input type="hidden" name="equipment_id" value="<?= $eq['id'] ?>">
+            <button type="submit" <?= $canMake ? '' : 'disabled' ?>>作る</button>
+          </form>
+        </div>
+      <?php endforeach; ?>
+    </div>
   </main>
 </div>
 

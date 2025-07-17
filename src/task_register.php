@@ -6,6 +6,16 @@ require 'includes/task_data.php'; // 教科・種類・時間リストを取得�
 $types = $_SESSION['types'] ?? $default_types;
 $times = $_SESSION['times'] ?? $default_times;
 
+$subject_classes = [
+  '算数' => 'math',
+  '国語' => 'japanese',
+  '英語' => 'english',
+  '理科' => 'science',
+  '社会' => 'social',
+  'その他' => 'other',
+];
+
+
 $current_page = 'task'; // task_register.phpでこれを定義
 ?>
 <style>
@@ -43,7 +53,7 @@ form {
 }
 
 .section {
-  background: #384E9A;
+  background: #484E88;
   padding: 1rem;
   border-radius: 16px;
 }
@@ -62,31 +72,97 @@ button {
   transition: background 0.2s;
 }
 
-button[type="button"]:hover {
-  background-color: #fff2;
-}
 
 #types button, #times button {
-  background: white;
+  background: #fff;
   color: #DB9963;
   font-weight: bold;
 }
+#types button:hover
+,#times button:hover{
+  background: #DB9963;
+  color: #fff;
+}
 
-#subjectButtons button {
-  width: 120px;
+
+/* 教科ボタンのベース */
+.subject-btn {
+  width: 100px;
   height: 60px;
   font-size: 1rem;
+  font-weight: bold;
   color: white;
   border: none;
   border-radius: 12px;
   margin: 0.5rem;
+  cursor: pointer;
 }
 
-#subjectButtons {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  justify-content: center;
+/* 各教科の個別色（画像準拠） */
+.subject-btn.math { 
+  background: #4CB6E8;
+}
+.subject-btn.math:hover {
+  background: #fff;
+  color: #4CB6E8;
+}
+.subject-btn.japanese { 
+  background: #F2A63F;
+}
+.subject-btn.japanese:hover{
+  background: #fff;
+  color: #F2A63F;
+}
+.subject-btn.english {
+  background: #DB89D2; 
+}
+.subject-btn.english:hover{
+  background: #fff;
+  color: #DB89D2;
+}
+
+.subject-btn.science { 
+  background: #66D3AD; 
+}
+.subject-btn.science:hover{
+  background: #fff;
+  color: #66D3AD;
+}
+
+.subject-btn.social {
+  background: #9887E1; 
+}
+.subject-btn.social:hover{
+  background: #fff;
+  color: #9887E1;
+}
+
+.subject-btn.other { 
+  background: #E25B5B; 
+}
+.subject-btn.other:hover{
+  background: #fff;
+  color: #E25B5B;
+}
+
+#newType{
+  width: 320px;
+  height: 40px;
+  border-radius: 20px;
+}
+#newTime{
+  width: 320px;
+  height: 40px;
+  border-radius: 20px;
+}
+.add_btn{
+  background-color: #fff;
+  color: #DB9963;
+  border-radius: 20px;
+}
+.add_btn:hover{
+  background-color: #DB9963;
+  color: #fff;
 }
 
 .preview-area {
@@ -132,10 +208,13 @@ button[type="button"]:hover {
 <div id="subjectButtons" class="section">
   <h3>教科</h3>
   <?php foreach ($subjects as $subject): ?>
-    <button type="button" onclick="select('subject', '<?= $subject ?>')"><?= $subject ?></button>
-  <?php endforeach; ?>
-</div>
-
+  <button 
+    type="button" 
+    class="subject-btn <?= $subject_classes[$subject] ?? '' ?>" 
+    onclick="select('subject', '<?= $subject ?>')">
+    <?= $subject ?>
+  </button>
+<?php endforeach; ?>
 <!-- 種類セクション -->
 <div class="section">
   <h3>種類</h3>
@@ -144,8 +223,8 @@ button[type="button"]:hover {
       <button type="button" onclick="select('type', '<?= $type ?>')"><?= $type ?></button>
     <?php endforeach; ?>
   </div>
-  <input type="text" id="newType" placeholder="新しく追加する種類">
-  <button type="button" onclick="addItem('type')">追加</button>
+  <input type="text" id="newType" placeholder="新しく追加する">
+  <button type="button" onclick="addItem('type')" class="add_btn">追加</button>
 </div>
 
 <!-- 時間セクション -->
@@ -157,7 +236,7 @@ button[type="button"]:hover {
     <?php endforeach; ?>
   </div>
   <input type="text" id="newTime" placeholder="新しく追加する時間（分）">
-  <button type="button" onclick="addItem('time')">追加</button>
+  <button type="button" onclick="addItem('time')" class="add_btn">追加</button>
 </div>
 
 <!-- 選択内容 -->
