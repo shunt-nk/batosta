@@ -20,6 +20,7 @@ $current_page = $current_page ?? '';
 
 /* 通常のナビメニュー */
 .nav-item {
+  text-align: left;
   display: flex;
   align-items: center;
   justify-content: space-around;

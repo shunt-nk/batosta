@@ -90,21 +90,29 @@ $current_page = 'create';
   <meta charset="UTF-8">
   <title>装備作成</title>
   <style>
-    body {
-      margin: 0;
-      display: flex;
-      background: #5D73A9;
-      color: #000;
-    }
-    .container {
-      display: flex;
-      min-height: 100vh;
-    }
-    .content {
-      padding: 2rem;
-      flex: 1;
-
-    }
+  body {
+    margin: 0;
+    font-family: sans-serif;
+    background: #5D73A9;
+    overflow: hidden;
+  }
+  
+  .container {
+    display: flex;
+    width: 1180px;
+    height: 840px;
+    overflow: hidden;
+  }
+  
+  
+  .content {
+    flex: 1;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    overflow-y: auto;
+  }
     h2{
       color: #fff;
     }

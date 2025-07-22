@@ -43,7 +43,7 @@ body {
 
 h2 {
   font-size: 1.8rem;
-  margin-bottom: 1rem;
+  margin: 1rem auto;
 }
 
 form {
@@ -194,7 +194,10 @@ button {
   width: 300px;
   text-align: center;
 }
-
+.start_btn{
+  background:#DB9963;
+  color: #fff;
+}
 </style>
 
 <body>
@@ -247,7 +250,7 @@ button {
 </div>
 
 <!-- 宿題を始める -->
-<button type="button" onclick="openModal()" style="background:#384E9A; color:#fff; font-size:1.2rem;">
+<button type="button" onclick="openModal()" class="start_btn">
   宿題を始める
 </button>
 </form>

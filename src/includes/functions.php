@@ -19,7 +19,7 @@ function calculateUserStats($pdo, $user_id) {
 }
 function renderAvatarLayers($equipped) {
   $html = '<div class="avatar-container">';
-  $html .= '<img src="avatars/base_body.png" class="avatar-layer">';
+  $html .= '<img src="assets/avatars/base.png" class="avatar-layer">';
   $slots = ['head', 'body', 'weapon', 'shield', 'feet'];
   foreach ($slots as $slot) {
     if (isset($equipped[$slot])) {
