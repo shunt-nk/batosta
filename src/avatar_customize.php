@@ -2,6 +2,9 @@
 session_start();
 require 'includes/db.php';
 
+$user_id = $_SESSION['user']['id'];
+$selected_slot = $_GET['slot'] ?? null;
+
 // POST: 装備解除処理
 if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_GET['remove']) && $_POST["slot"]) {
   $slot = $_POST["slot"];
@@ -17,15 +20,13 @@ function renderAvatarLayers($current, $default_icons) {
   $html .= '<div class="avatar-container">';
   $html .= '<img src="assets/avatars/base.png" class="avatar-layer">';
 
-  foreach (['head',  'weapon', 'shield'] as $slot) {
+  foreach (['head', 'body', 'weapon', 'shield', 'feet'] as $slot) {
     if (!empty($current[$slot]['image_path'])) {
       $image_path = htmlspecialchars($current[$slot]['image_path']);
-      $html .= '<img src="assets/avatars/' . $image_path . '" class="avatar-layer ' . $slot . '">';
-    } else {
-      $html .= '<img src="assets/icons/' . $default_icons[$slot] . '" class="slot-icon" data-slot="' . $slot . '">';
+      $html .= '<img src="assets/avatars/' . $image_path . '" class="avatar-layer slot-' . $slot . '">';
     }
   }
-
+    
   $html .= '</div></div>';
   return $html;
 }
@@ -35,8 +36,6 @@ if (!isset($_SESSION['user'])) {
   exit;
 }
 
-$user_id = $_SESSION['user']['id'];
-$selected_slot = $_GET['slot'] ?? null;
 
 $slot_labels = [
   'head' => '頭防具',
@@ -112,23 +111,10 @@ $current_page = 'customize';
 <head>
   <meta charset="UTF-8">
   <title>アバター着せ替え</title>
+  <link rel="stylesheet" href="styles/style.css">
   <link rel="stylesheet" href="styles/avatar_customize.css">
 </head>
-<script>
-function showEquipModal(equipment) {
-  document.getElementById('modal-name').innerText = equipment.name;
-  document.getElementById('modal-image').src = 'assets/avatars/' + equipment.image_path;
-  document.getElementById('modal-attack').innerText = '攻撃力: ' + equipment.attack;
-  document.getElementById('modal-defense').innerText = '防御力: ' + equipment.defense;
-  document.getElementById('modal-slot').value = equipment.slot;
-  document.getElementById('modal-equipment-id').value = equipment.equipment_id;
-  document.getElementById('equipModal').style.display = 'flex';
-}
-
-function closeModal() {
-  document.getElementById('equipModal').style.display = 'none';
-}
-</script>
+<script src="js/avatar_customize.js"></script>
 
 <body>
 <div class="container">

@@ -1,0 +1,93 @@
+h2 {
+  color: #fff;
+}
+
+.item {
+  background: white;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  border-radius: 8px;
+}
+button {
+  padding: 0.5rem 1rem;
+  border: none;
+  background: #db9963;
+  color: white;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 1.1rem;
+}
+button:disabled {
+  background: gray;
+  cursor: not-allowed;
+}
+
+.equipment-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.5rem;
+  max-width: 800px;
+  margin: 0 auto; /* 中央寄せ */
+}
+
+.item {
+  color: #fff;
+  background: #484e88;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.name {
+  margin-top: 10px;
+  font-weight: bold;
+  font-size: 1.3rem;
+}
+.materials {
+  list-style: none;
+}
+.thumb {
+  width: 100px;
+  height: 100px;
+  margin: 0 auto 0.5rem;
+  background-color: #fff;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+button.owned {
+  background: gray;
+  color: white;
+  cursor: default;
+  opacity: 0.7;
+}
+.filter-form {
+  margin: 1rem auto 2rem;
+  text-align: center;
+  color: #fff;
+}
+.filter-section {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.filter-form select,
+.filter-form button {
+  padding: 5px 10px;
+  font-size: 1rem;
+  border-radius: 6px;
+}
+.create_btn {
+  display: flex;
+  justify-content: flex-end;
+}

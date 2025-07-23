@@ -20,8 +20,8 @@ $current_page = $current_page ?? '';
 
 /* 通常のナビメニュー */
 .nav-item {
-  text-align: left;
   display: flex;
+  text-align: left;
   align-items: center;
   justify-content: space-around;
   gap: 0.5rem;
@@ -29,9 +29,9 @@ $current_page = $current_page ?? '';
   color: white;
   font-weight: bold;
   text-decoration: none;
-  border-bottom: 1px solid #444;
+  border-bottom: 1px solid #516C8D;
   background: #2C3E75;
-  transition: background 0.5s;
+  transition: 0.5s;
 }
 .nav-item:hover {
   background: #3e5088;

@@ -50,23 +50,7 @@ $current_page = 'friend';
 
 ?>
 
-<style>
-  body {
-    margin: 0;
-    display: flex;
-    background: #5D73A9;
-    color: #fff;
-  }
-  .container {
-    display: flex;
-    min-height: 100vh;
-  }
-  .content {
-    padding: 2rem;
-  }
-
-
-</style>
+<link rel="stylesheet" href="styles/style.css">
 
 <div class="container">
 <?php include 'includes/navbar.php'; ?>

@@ -1,31 +1,13 @@
 /* avatar_customize.css */
 
-body {
-  margin: 0;
-  font-family: "Noto Sans JP", sans-serif;
-  background-color: #4d5fa9;
-  color: #fff;
-  overflow-x: hidden;
-}
-
-.container {
-  display: flex;
-  min-height: 100vh;
-  width: 100%;
-}
-
-.content {
-  flex: 1;
-  padding: 2rem;
-  display: flex;
-  flex-direction: column;
-  gap: 2rem;
-  overflow: hidden;
-}
-
 h1 {
   font-size: 2rem;
   margin-bottom: 1rem;
+  text-align: center;
+  color: #fff;
+}
+p {
+  color: #fff;
 }
 
 .customize-grid {
@@ -54,10 +36,10 @@ h1 {
 }
 
 .avatar-preview-wrapper {
-  width: 220px;
-  height: 280px;
+  width: 300px;
+  height: 360px;
   position: relative;
-  background: #fff;
+  background: #ffffff;
   border-radius: 20px;
   display: flex;
   justify-content: center;
@@ -67,8 +49,8 @@ h1 {
 
 .avatar-container {
   position: relative;
-  width: 180px;
-  height: 240px;
+  width: 240px;
+  height: 360px;
 }
 
 .avatar-layer {
@@ -174,8 +156,8 @@ h1 {
 
 .current-equip-thumb {
   position: relative;
-  width: 60px;
-  height: 60px;
+  width: 80px;
+  height: 80px;
   padding: 5px;
   border: none;
   background: #fff;
@@ -247,32 +229,32 @@ h1 {
   cursor: pointer;
 }
 /* 武器 */
-.avatar-layer.weapon {
-  width: 20%;
-  top: 4%;
-  left: 10%;
+.slot-weapon {
+  width: 25%;
+  top: 1%;
+  left: 2%;
   z-index: 3;
   transform: rotate(-30deg);
 }
 
 /* 盾 */
-.avatar-layer.shield {
-  width: 30%;
+.slot-shield {
+  width: 35%;
   top: 15%;
-  right: 20%;
+  right: 15%;
   z-index: 3;
 }
 
 /* 頭防具 */
-.avatar-layer.head {
-  width: 75%;
-  top: -27%;
-  left: 13%;
+.slot-head {
+  width: 83%;
+  top: -28%;
+  left: 8%;
   z-index: 4;
 }
 
 /* 体防具 */
-.avatar-layer.body {
+.slot-body {
   width: 60%;
   top: 40%;
   left: 20%;
@@ -280,7 +262,7 @@ h1 {
 }
 
 /* 足防具 */
-.avatar-layer.feet {
+.slot-feet {
   width: 40%;
   bottom: 0;
   left: 30%;

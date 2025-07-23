@@ -61,66 +61,8 @@ $current_page = 'home';
 <head>
   <meta charset="UTF-8">
   <title>バトスタ ホーム</title>
-  <style>
-    body {
-      margin: 0;
-      display: flex;
-      background: #5D73A9;
-    }
-    .container {
-      display: flex;
-      min-height: 100vh;
-    }
-    .content {
-      padding: 2rem;
-    }
-    main {
-      flex: 1;
-      padding: 2rem;
-    }
-    section {
-      background: #484E88;
-      margin-bottom: 2rem;
-      padding: 1.5rem;
-      border-radius: 20px;
-      color: white;
-    }
-
-    .hw{
-      margin-top: 2rem;
-      margin-right: 1.5rem;
-      width: 400px;
-      height: 690px;
-    }
-    .mt{
-      margin-top: 2rem;
-      width: 400px;
-      height: 690px;
-
-
-    }
-    .progress-bar {
-      background: #eee;
-      height: 20px;
-      border-radius: 10px;
-      overflow: hidden;
-    }
-    .progress {
-      height: 100%;
-      background: linear-gradient(to right, orange, gold);
-    }
-    .avatar-container {
-    position: relative;
-    width: 200px;
-    height: 200px;
-    margin: auto;
-    }
-    .avatar-layer {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-}
+  <link rel="stylesheet" href="styles/style.css">
+  <link rel="stylesheet" href="styles/dashboard.css">
   </style>
 </head>
 <body>

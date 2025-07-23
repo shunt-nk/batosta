@@ -1,0 +1,41 @@
+section {
+  background: #484e88;
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  border-radius: 20px;
+  color: white;
+}
+
+.hw {
+  margin-top: 2rem;
+  margin-right: 1.5rem;
+  width: 400px;
+  height: 690px;
+}
+.mt {
+  margin-top: 2rem;
+  width: 400px;
+  height: 690px;
+}
+.progress-bar {
+  background: #eee;
+  height: 20px;
+  border-radius: 10px;
+  overflow: hidden;
+}
+.progress {
+  height: 100%;
+  background: linear-gradient(to right, orange, gold);
+}
+.avatar-container {
+  position: relative;
+  width: 200px;
+  height: 200px;
+  margin: auto;
+}
+.avatar-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+}
