@@ -30,6 +30,60 @@ $stmt->execute([$user_id, $subject, $type, $duration, $started_at, $ended_at]);
 $stmt = $pdo->query("SELECT * FROM materials");
 $materials = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+// 経験値・レベルアップ処理
+$stmt = $pdo->prepare("SELECT * FROM avatars_status WHERE user_id = ?");
+$stmt->execute([$user_id]);
+$status = $stmt->fetch();
+
+if (!$status) {
+  // 初回（存在しない）なら作成
+  $status = [
+    'user_id' => $user_id,
+    'level' => 1,
+    'exp' => 0,
+    'attack' => 1,
+    'defense' => 1
+  ];
+  $insert = $pdo->prepare("INSERT INTO avatars_status (user_id, level, exp, attack, defense) VALUES (?, ?, ?, ?, ?)");
+  $insert->execute([$user_id, 1, 0, 1, 1]);
+}
+
+// 経験値加算
+$gained_exp = $duration * 2; // 例: 1分あたり2EXP
+$new_exp = $status['exp'] + $gained_exp;
+$level = $status['level'];
+$max_level = 100;
+
+// 経験値テーブル：必要経験値 = 100 + (level - 1) * 20
+function requiredExp($level) {
+  return 100 + ($level - 1) * 20;
+}
+
+// レベルアップ処理
+$up = 0;
+while ($level < $max_level && $new_exp >= requiredExp($level)) {
+  $new_exp -= requiredExp($level);
+  $level++;
+  $up++;
+}
+
+// ランダムにステータス上昇（レベルアップした場合）
+$attack_up = 0;
+$defense_up = 0;
+if ($up > 0) {
+  for ($i = 0; $i < $up; $i++) {
+    $attack_up += rand(1, 2);
+    $defense_up += rand(1, 2);
+  }
+  $status['attack'] += $attack_up;
+  $status['defense'] += $defense_up;
+}
+
+// 保存
+$update = $pdo->prepare("UPDATE avatars_status SET level = ?, exp = ?, attack = ?, defense = ? WHERE user_id = ?");
+$update->execute([$level, $new_exp, $status['attack'], $status['defense'], $user_id]);
+
+
 // ランダムに3種選ぶ（重複なし）
 shuffle($materials);
 $reward_items = array_slice($materials, 0, 3);
@@ -110,41 +164,18 @@ unset($_SESSION["study"]);
 <head>
   <meta charset="UTF-8">
   <title>攻略完了！</title>
-  <style>
-    body {
-      font-family: sans-serif;
-      text-align: center;
-      padding: 2rem;
-      background: linear-gradient(to bottom, #222, #000);
-      color: white;
-    }
-    .event-log, .reward-log {
-      margin: 1rem 0;
-      font-size: 1.2rem;
-    }
-    .reward {
-      font-size: 1.5rem;
-      margin-top: 2rem;
-    }
-    .hidden {
-      display: none;
-    }
-    button {
-      margin-top: 2rem;
-      padding: 1rem 2rem;
-      font-size: 1rem;
-      background: white;
-      color: #333;
-      border: none;
-      border-radius: 10px;
-      cursor: pointer;
-    }
-  </style>
+  <link rel="stylesheet" href="styles/task_result.css">
 </head>
 <body>
 
 <h1>攻略結果</h1>
 <p>勉強内容：<?= htmlspecialchars($subject) ?> / <?= htmlspecialchars($type) ?>（<?= $duration ?>分）</p>
+<?php if (isset($levelup_message)): ?>
+  <div class="levelup-message">
+    <h2>レベルアップ！</h2>
+    <p><?= $levelup_message ?></p>
+  </div>
+<?php endif; ?>
 
 <div id="eventSection">
   <h2>ダンジョンでの出来事</h2>

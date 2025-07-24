@@ -1,21 +1,38 @@
+.container {
+  max-width: 800px;
+}
+
 section {
   background: #484e88;
-  margin-bottom: 2rem;
-  padding: 1.5rem;
+  padding: 20px 15px;
   border-radius: 20px;
   color: white;
 }
-
-.hw {
-  margin-top: 2rem;
-  margin-right: 1.5rem;
-  width: 400px;
-  height: 690px;
+.avatar_section {
+  height: 300px;
 }
-.mt {
+h2 {
+  margin-top: 10px;
+  font-size: 1.3rem;
+}
+h3 {
+  margin-top: 10px;
+  font-size: 1.2rem;
+}
+
+.dashboard-columns {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  align-items: center;
   margin-top: 2rem;
-  width: 400px;
-  height: 690px;
+}
+
+.hw,
+.mt {
+  width: 100%;
+  max-width: 500px;
+  height: auto; /* 高さ固定解除 */
 }
 .progress-bar {
   background: #eee;
@@ -34,8 +51,51 @@ section {
   margin: auto;
 }
 .avatar-layer {
+  margin-top: 30px;
   position: absolute;
-  top: 0;
+  top: -70px;
   left: 0;
   width: 100%;
+}
+/* 装備の各レイヤー */
+
+.slot-weapon {
+  width: 25%;
+  top: 10%;
+  left: 2%;
+  z-index: 3;
+  position: absolute;
+  transform: rotate(-30deg);
+}
+
+.slot-shield {
+  width: 35%;
+  top: 80px;
+  left: 50%;
+  z-index: 3;
+  position: absolute;
+}
+
+.slot-head {
+  width: 83%;
+  top: -37%;
+  left: 8%;
+  z-index: 4;
+  position: absolute;
+}
+
+.slot-body {
+  width: 60%;
+  top: 40%;
+  left: 20%;
+  z-index: 2;
+  position: absolute;
+}
+
+.slot-feet {
+  width: 40%;
+  bottom: 0;
+  left: 30%;
+  z-index: 1;
+  position: absolute;
 }

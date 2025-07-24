@@ -1,9 +1,17 @@
 <?php
 session_start();
 require 'includes/db.php';
+require 'includes/functions.php';
+
+if (!isset($_SESSION['user'])) {
+  header("Location: login.php");
+  exit;
+}
+
 
 $user_id = $_SESSION['user']['id'];
 $selected_slot = $_GET['slot'] ?? null;
+$status = getAvatarStatusWithEquip($pdo, $user_id);
 
 // POST: 装備解除処理
 if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_GET['remove']) && $_POST["slot"]) {
@@ -15,21 +23,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_GET['remove']) && $_POST["s
 }
 
 
-function renderAvatarLayers($current, $default_icons) {
-  $html = '<div class="avatar-preview-wrapper">';
-  $html .= '<div class="avatar-container">';
-  $html .= '<img src="assets/avatars/base.png" class="avatar-layer">';
-
-  foreach (['head', 'body', 'weapon', 'shield', 'feet'] as $slot) {
-    if (!empty($current[$slot]['image_path'])) {
-      $image_path = htmlspecialchars($current[$slot]['image_path']);
-      $html .= '<img src="assets/avatars/' . $image_path . '" class="avatar-layer slot-' . $slot . '">';
-    }
-  }
-    
-  $html .= '</div></div>';
-  return $html;
-}
 
 if (!isset($_SESSION['user'])) {
   header("Location: login.php");
@@ -156,7 +149,7 @@ $current_page = 'customize';
             </div>
             <?= renderAvatarLayers($current, $default_icons) ?>
             <div class="status-summary">
-              <p>攻撃力: <?= $total_atk ?> / 防御力: <?= $total_def ?></p>
+            <p>攻撃力: <?= $status['attack'] ?> / 防御力: <?= $status['defense'] ?></p>
             </div>
           </div>
 

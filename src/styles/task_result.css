@@ -1,0 +1,41 @@
+body {
+  font-family: sans-serif;
+  text-align: center;
+  padding: 2rem;
+  background: linear-gradient(to bottom, #222, #000);
+  color: white;
+}
+
+.event-log,
+.reward-log {
+  margin: 1rem 0;
+  font-size: 1.2rem;
+}
+.reward {
+  font-size: 1.5rem;
+  margin-top: 2rem;
+}
+.hidden {
+  display: none;
+}
+.hidden ul {
+  list-style: none;
+}
+button {
+  margin-top: 2rem;
+  padding: 1rem 2rem;
+  font-size: 1rem;
+  background: white;
+  color: #333;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+}
+.levelup-message {
+  background: #ffcf3f;
+  color: #222;
+  padding: 1.5rem;
+  border-radius: 15px;
+  margin: 2rem auto;
+  max-width: 500px;
+}

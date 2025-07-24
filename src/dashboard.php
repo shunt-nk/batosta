@@ -11,16 +11,18 @@ if (!isset($_SESSION['user'])) {
 
 $user = $_SESSION['user'];
 $user_id = $user['id'];
+$status = getAvatarStatus($pdo, $user_id);
 
 // アバター情報
 $stmt = $pdo->prepare("SELECT * FROM avatars WHERE user_id = ?");
-$stats = calculateUserStats($pdo, $user_id);
+// この1行で統合された状態が入る
+$status = getAvatarStatusWithEquip($pdo, $user_id);
 $stmt->execute([$user_id]);
 $avatar = $stmt->fetch();
 
 // 現在の装備を取得
 $stmt = $pdo->prepare("
-  SELECT e.slot, e.name
+  SELECT uae.slot, e.image_path
   FROM user_avatar_equipments uae
   JOIN equipments e ON uae.equipment_id = e.id
   WHERE uae.user_id = ?
@@ -28,7 +30,9 @@ $stmt = $pdo->prepare("
 $stmt->execute([$user_id]);
 $equipped = [];
 foreach ($stmt->fetchAll() as $row) {
-  $equipped[$row['slot']] = $row['name'];
+  $equipped[$row['slot']] = [
+    'image_path' => $row['image_path']
+  ];
 }
 
 
@@ -71,47 +75,55 @@ $current_page = 'home';
  <?php include 'includes/navbar.php'; ?>
  <main class="content">
    <section>
-     <p>レベル：<?= $avatar['level'] ?? 1 ?> / 経験値：<?= $avatar['exp'] ?? 0 ?> / 性別：<?= $avatar['gender'] ?? '不明' ?></p>
-     <div class="progress-bar">
-       <div class="progress" style="width: <?= ($avatar['exp'] % 100) ?>%;"></div>
+   <p>レベル：<?= $status['level'] ?> / 経験値：<?= $status['exp'] ?></p>
+   <?php
+      function requiredExp($level) {
+        return 100 + ($level - 1) * 20;
+      }
+      $progress_percent = round(($status['exp'] / requiredExp($status['level'])) * 100);
+      ?>
+      <div class="progress-bar">
+        <div class="progress" style="width: <?= $progress_percent ?>%;"></div>
       </div>
     </section>
     <section>
       <h2>現在のステータス</h2>
-      <p>攻撃力：<?= $stats['attack'] ?> / 防御力：<?= $stats['defense'] ?></p>
-    </section>
-    <section>
+      <p>攻撃力：<?= $status['attack'] ?> / 防御力：<?= $status['defense'] ?></p>    </section>
+    <section class="avatar_section">
       <h2>あなたのアバター</h2>
       <?= renderAvatarLayers($equipped) ?>
     </section>
   </div>
   
   
-  <section class="hw">
-    <h3>今日の宿題履歴（<?= count($logs) ?>件）</h3>
-    <ul>
-      <?php foreach ($logs as $log): ?>
-        <li><?= $log['subject'] ?> / <?= $log['type'] ?>（<?= $log['duration_minutes'] ?>分）</li>
+<!-- このあたりを変更 -->
+  <div class="dashboard-columns">
+    <section class="hw">
+      <h3>今日の宿題履歴（<?= count($logs) ?>件）</h3>
+      <ul>
+        <?php foreach ($logs as $log): ?>
+          <li><?= $log['subject'] ?> / <?= $log['type'] ?>（<?= $log['duration_minutes'] ?>分）</li>
         <?php endforeach; ?>
         <?php if (count($logs) === 0): ?>
           <li>まだ今日の宿題はありません</li>
-          <?php endif; ?>
-        </ul>
-      </section>
-      
-      <section class="mt">
-        <h3>所持素材</h3>
-        <ul>
-          <?php foreach ($materials as $m): ?>
-        <li><?= $m['name'] ?> × <?= $m['quantity'] ?></li>
+        <?php endif; ?>
+      </ul>
+    </section>
+
+    <section class="mt">
+      <h3>所持素材</h3>
+      <ul>
+        <?php foreach ($materials as $m): ?>
+          <li><?= $m['name'] ?> × <?= $m['quantity'] ?></li>
         <?php endforeach; ?>
         <?php if (count($materials) === 0): ?>
           <li>素材はまだありません</li>
-          <?php endif; ?>
-        </ul>
-      </section>
-    </main>
+        <?php endif; ?>
+      </ul>
+    </section>
   </div>
+</div>
+</main>
     
   </body>
   </html>

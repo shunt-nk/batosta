@@ -116,6 +116,8 @@ foreach ($stmt->fetchAll() as $row) {
   $user_materials[$row['material_id']] = $row['quantity'];
 }
 
+$current_page = 'create'; 
+
 ?>
 
 <!DOCTYPE html>
