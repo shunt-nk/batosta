@@ -4,7 +4,7 @@ require 'includes/db.php';
 require 'includes/functions.php';
 
 if (!isset($_SESSION['user'])) {
-  header("Location: login.php");
+  header("Location: index.php");
   exit;
 }
 

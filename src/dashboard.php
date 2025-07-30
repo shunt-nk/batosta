@@ -67,7 +67,6 @@ $current_page = 'home';
   <title>バトスタ ホーム</title>
   <link rel="stylesheet" href="styles/style.css">
   <link rel="stylesheet" href="styles/dashboard.css">
-  </style>
 </head>
 <body>
 
