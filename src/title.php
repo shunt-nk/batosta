@@ -47,72 +47,85 @@ $current_page = 'title';
 
 ?>
 
-<style>
-  body {
-    margin: 0;
-    display: flex;
-    background: #5D73A9;
-  }
-  .container {
-    display: flex;
-    min-height: 100vh;
-  }
-  .content {
-    padding: 2rem;
-  }
-
-</style>
-
+<link rel="stylesheet" href="styles/style.css">
+<link rel="stylesheet" href="styles/title.css">
+<script src="js/title.js"></script>
 <div class="container">
-<?php include 'includes/navbar.php'; ?>
-<main class="content">
-
-
-  <!-- フィルター -->
-  <div>
-    <a href="?filter=all">すべて</a> |
-    <a href="?filter=owned">獲得済み</a> |
-    <a href="?filter=unowned">未獲得</a>
-  </div>
-
-  <div style="display: flex; margin-top: 2rem;">
-    <!-- 左側：装備中・選択中 -->
-    <div style="width: 40%; padding-right: 2rem;">
-      <h2>現在の称号</h2>
-      <p>
-        <?php
-          $current = array_filter($all_titles, fn($t) => $t['id'] == $equipped_id);
-          echo $current ? htmlspecialchars($current[array_key_first($current)]['name']) : '未設定';
-        ?>
-      </p>
+  <?php include 'includes/navbar.php'; ?>
+    <!-- 入手方法モーダル -->
+  <div id="methodModal" class="modal-overlay">
+    <div class="modal-content">
+      <h3>入手方法</h3>
+      <p id="methodText"></p>
+      <button onclick="closeModal()">閉じる</button>
     </div>
+  </div>
+  <main class="title-content">
+    <div class="title-main">
+      <!-- 左：現在の称号、選択中の称号 -->
+      <div class="title-left">
+        <div class="title-box">
+          <div class="title-header">セット中の称号</div>
+          <div class="title-current">
+            <?php
+              $current = array_filter($all_titles, fn($t) => $t['id'] == $equipped_id);
+              echo $current ? htmlspecialchars($current[array_key_first($current)]['name']) : 'なし';
+            ?>
+          </div>
+        </div>
 
-    <!-- 右側：称号一覧 -->
-    <div style="width: 60%;">
-      <h2>称号一覧</h2>
-      <div style="display: flex; flex-wrap: wrap; gap: 1rem;">
-        <?php foreach ($titles as $t): ?>
-          <?php
-            $owned_flag = isset($owned[$t['id']]);
-            $is_equipped = $owned_flag && $owned[$t['id']];
-          ?>
-          <form method="POST" style="border: 1px solid #ccc; padding: 1rem; width: 45%; background: <?= $owned_flag ? '#fff' : '#eee' ?>;">
-            <strong><?= htmlspecialchars($t['name']) ?></strong>
-            <p style="font-size: 0.9rem;"><?= htmlspecialchars($t['description']) ?></p>
-            <?php if ($owned_flag): ?>
-              <?php if (!$is_equipped): ?>
-                <input type="hidden" name="equip_id" value="<?= $t['id'] ?>">
-                <button type="submit">この称号を装備</button>
-              <?php else: ?>
-                <span style="color: green;">✔ 装備中</span>
-              <?php endif; ?>
+        <div class="title-box">
+          <div class="title-header">選択中の称号</div>
+          <div class="title-selected">
+            <?php if (isset($_POST['equip_id'])): ?>
+              <?php
+                $selected = array_filter($all_titles, fn($t) => $t['id'] == $_POST['equip_id']);
+                echo $selected ? htmlspecialchars($selected[array_key_first($selected)]['name']) : '未選択';
+              ?>
             <?php else: ?>
-              <span style="color: gray;">未獲得</span>
+              <span class="lock-icon">🔒</span>
             <?php endif; ?>
-          </form>
-        <?php endforeach; ?>
+          </div>
+          <div class="title-buttons">
+          <?php if (isset($_POST['equip_id'])): ?>
+              <?php
+                $selected = array_filter($all_titles, fn($t) => $t['id'] == $_POST['equip_id']);
+                $selected_title = $selected ? $selected[array_key_first($selected)] : null;
+              ?>
+              <?php if ($selected_title): ?>
+                <button onclick="openModal('<?= htmlspecialchars($selected_title['description'], ENT_QUOTES) ?>')">入手方法</button>
+              <?php endif; ?>
+            <?php endif; ?>
+            <?php if (isset($_POST['equip_id']) && isset($owned[$_POST['equip_id']])): ?>
+              <form method="POST">
+                <input type="hidden" name="equip_id" value="<?= $_POST['equip_id'] ?>">
+                <button class="btn-pink">セットする</button>
+              </form>
+            <?php endif; ?>
+          </div>
+        </div>
+      </div>
+
+      <!-- 右：称号一覧とタブ -->
+      <div class="title-right">
+        <div class="title-tabs">
+          <a href="?filter=all" class="tab <?= $filter === 'all' ? 'active' : '' ?>">称号一覧</a>
+          <a href="?filter=owned" class="tab <?= $filter === 'owned' ? 'active' : '' ?>">勉強</a>
+          <a href="?filter=unowned" class="tab <?= $filter === 'unowned' ? 'active' : '' ?>">バトル</a>
+        </div>
+
+        <div class="title-grid">
+          <?php foreach ($titles as $t): ?>
+            <div class="title-card <?= isset($owned[$t['id']]) ? 'owned' : 'locked' ?>">
+              <?php if (isset($owned[$t['id']])): ?>
+                <?= htmlspecialchars($t['name']) ?>
+              <?php else: ?>
+                <span class="lock-icon">🔒</span>
+              <?php endif; ?>
+            </div>
+          <?php endforeach; ?>
+        </div>
       </div>
     </div>
-  </div>
-</main>
+  </main>
 </div>

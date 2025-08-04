@@ -38,7 +38,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['friend_email'])) {
 
 // フレンド一覧取得
 $stmt = $pdo->prepare("
-  SELECT u.id, u.nickname, u.email
+  SELECT u.id, u.username, u.email
   FROM friends f
   JOIN users u ON f.friend_id = u.id
   WHERE f.user_id = ?
@@ -70,7 +70,7 @@ $current_page = 'friend';
     <ul>
       <?php foreach ($friends as $f): ?>
         <li>
-          <?= htmlspecialchars($f['nickname'] ?? '未設定') ?>（<?= htmlspecialchars($f['email']) ?>）
+          <?= htmlspecialchars($f['username'] ?? '未設定') ?>（<?= htmlspecialchars($f['email']) ?>）
         </li>
       <?php endforeach; ?>
       <?php if (empty($friends)): ?>

@@ -22,9 +22,11 @@ if (rand(1, 20) === 1) $rare_events[] = "ダンジョンのボスを討伐した
 $event_log = array_merge($event_log, $rare_events);
 
 // 勉強記録保存
-$stmt = $pdo->prepare("INSERT INTO study_logs (user_id, subject, type, duration_minutes, started_at, ended_at)
-                       VALUES (?, ?, ?, ?, ?, ?)");
-$stmt->execute([$user_id, $subject, $type, $duration, $started_at, $ended_at]);
+$study_date = date('Y-m-d');
+
+$stmt = $pdo->prepare("INSERT INTO study_logs (user_id, subject, type, duration_minutes, started_at, ended_at, study_date)
+                       VALUES (?, ?, ?, ?, ?, ?, ?)");
+$stmt->execute([$user_id, $subject, $type, $duration, $started_at, $ended_at, $study_date]);
 
 // 素材取得
 $stmt = $pdo->query("SELECT * FROM materials");
@@ -158,6 +160,31 @@ foreach ($event_summary as $event => $count) {
 
 // セッションクリア
 unset($_SESSION["study"]);
+
+// 称号チェック処理（累計30分以上で id=1 の称号を付与）
+function checkAndAwardTitles($pdo, $user_id) {
+  // 既に持っているか確認
+  $stmt = $pdo->prepare("SELECT COUNT(*) FROM user_titles WHERE user_id = ? AND title_id = 3");
+  $stmt->execute([$user_id]);
+  $hasTitle = $stmt->fetchColumn() > 0;
+
+  if (!$hasTitle) {
+    // 累計時間を取得
+    $stmt = $pdo->prepare("SELECT SUM(duration_minutes) FROM study_logs WHERE user_id = ?");
+    $stmt->execute([$user_id]);
+    $totalMinutes = (int)$stmt->fetchColumn();
+
+    if ($totalMinutes >= 30) {
+      // 称号を付与
+      $insert = $pdo->prepare("INSERT INTO user_titles (user_id, title_id, equipped) VALUES (?, ?, FALSE)");
+      $insert->execute([$user_id, 1]);
+    }
+  }
+}
+
+// 使用例
+checkAndAwardTitles($pdo, $_SESSION['user']['id']);
+
 ?>
 <!DOCTYPE html>
 <html lang="ja">

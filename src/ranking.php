@@ -45,7 +45,6 @@ switch ($category) {
     break;
 
   default:
-    // fallback to weekly
     header("Location: ranking.php?category=weekly");
     exit;
 }
@@ -55,14 +54,13 @@ $current_page = 'ranking';
 ?>
 
 <link rel="stylesheet" href="styles/style.css">
+<link rel="stylesheet" href="styles/ranking.css">
 
 <div class="container">
   <?php include 'includes/navbar.php'; ?>
 
   <main class="content">
-    <h1>ランキング</h1>
 
-    <!-- 部門切り替え -->
     <form method="GET" action="ranking.php" class="ranking-filter" style="margin-bottom: 20px;">
       <label for="category">表示部門：</label>
       <select name="category" id="category" onchange="this.form.submit()">
@@ -72,31 +70,60 @@ $current_page = 'ranking';
       </select>
     </form>
 
-    <table border="1" cellpadding="10" cellspacing="0">
+    <!-- 上位3人表示 -->
+    <div class="top-three">
+      <?php for ($i = 1; $i <= 3; $i++): ?>
+        <?php if (isset($users[$i - 1])): ?>
+          <?php $u = $users[$i - 1]; ?>
+          <div class="top-card rank<?= $i ?> <?= $u['id'] == $user_id ? 'highlight' : '' ?>">
+            <div class="top-rank">第<?= $i ?>位</div>
+            <div class="top-name"><?= htmlspecialchars($u['username'] ?? '未設定') ?></div>
+            <div class="top-value">
+              <?= $category === 'level' ? 'Lv' . $u['value'] : $u['value'] ?>
+            </div>
+          </div>
+        <?php endif; ?>
+      <?php endfor; ?>
+    </div>
+
+    <!-- 4位以降 -->
+    <table cellpadding="10" cellspacing="0">
       <tr>
-        <th>順位</th>
-        <th>ユーザー名</th>
-        <th><?= htmlspecialchars($label) ?></th>
+        <th class="rank_title">順位</th>
+        <th class="name_title">ユーザー名</th>
+        <th class="data_taitle"><?= htmlspecialchars($label) ?></th>
       </tr>
       <?php
       $rank = 1;
       foreach ($users as $u):
-        $highlight = $u['id'] == $user_id ? 'style="background: #ffffcc;"' : '';
+        if ($rank <= 3) {
+          $rank++;
+          continue;
+        }
+        $highlight = $u['id'] == $user_id ? 'style="background: #DB9963;"' : '';
       ?>
         <tr <?= $highlight ?>>
-          <td><?= $rank++ ?></td>
-          <td><?= htmlspecialchars($u['username'] ?? '未設定') ?></td>
-          <td>
-            <?php
-              if ($category === 'level') {
-                echo 'Lv' . $u['value'];
-              } else {
-                echo $u['value'];
-              }
-            ?>
+          <td class="rank"><?= $rank ?></td>
+          <td class="name"><?= htmlspecialchars($u['username'] ?? '未設定') ?></td>
+          <td class="data">
+            <?= $category === 'level' ? 'Lv' . $u['value'] : $u['value'] ?>
           </td>
         </tr>
-      <?php endforeach; ?>
+      <?php $rank++; endforeach; ?>
     </table>
+
+    <!-- 自分の順位表示 -->
+    <?php
+    foreach ($users as $i => $u) {
+      if ($u['id'] == $user_id) {
+        $my_rank = $i + 1;
+        break;
+      }
+    }
+    ?>
+    <div class="my-rank-box">
+      あなたの順位：<?= $my_rank ?>位
+    </div>
+
   </main>
 </div>

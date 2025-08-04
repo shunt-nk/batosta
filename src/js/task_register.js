@@ -19,7 +19,7 @@ function highlightSelected(key, value) {
     key === "subject"
       ? ".subject-btn"
       : key === "type"
-      ? ".type_btn"
+      ? ".type-btn"
       : ".time_btn";
 
   document.querySelectorAll(className).forEach((btn) => {
@@ -76,7 +76,6 @@ function updatePreview() {
     typeContainer.appendChild(dummy);
   }
 }
-
 function createDummyButton(text) {
   const btn = document.createElement("button");
   btn.textContent = text;
@@ -199,4 +198,31 @@ function openModal() {
 
 function closeModal() {
   document.getElementById("confirmModal").style.display = "none";
+}
+
+function addItem(key) {
+  if (key === "type") {
+    const input = document.getElementById("newType");
+    const value = input.value.trim();
+    if (!value) return;
+
+    // 同じ種類が既にあるか確認
+    const exists = Array.from(document.querySelectorAll(".type-btn")).some(
+      (btn) => btn.textContent === value
+    );
+    if (exists) {
+      alert("既に存在する種類です");
+      return;
+    }
+
+    // ボタンを追加
+    const newBtn = document.createElement("button");
+    newBtn.type = "button";
+    newBtn.className = "type-btn";
+    newBtn.textContent = value;
+    newBtn.onclick = () => select("type", value);
+
+    document.getElementById("types").appendChild(newBtn);
+    input.value = ""; // 入力欄をクリア
+  }
 }

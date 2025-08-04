@@ -1,0 +1,122 @@
+main {
+  font-size: 62.5%;
+}
+
+table {
+  width: 640px;
+  margin: 0 auto;
+  color: #fff;
+}
+
+td {
+  border-bottom: #fff 1px solid;
+}
+th {
+  border-bottom: #fff 1px solid;
+}
+.rank_title {
+  width: 105px;
+  text-align: center;
+}
+.name_title {
+  width: 195px;
+  text-align: center;
+}
+.data_title {
+  width: 300px;
+  text-align: center;
+}
+.rank {
+  width: 105px;
+  font-size: 1.5rem;
+  font-weight: bold;
+  text-align: center;
+}
+
+.name {
+  width: 195px;
+  text-align: center;
+}
+
+.data {
+  width: 300px;
+  text-align: center;
+}
+
+/* 自分の順位表示 */
+.my-rank-box {
+  position: absolute;
+  top: 80px;
+  right: 72px;
+  background-color: #db9963;
+  color: white;
+  padding: 10px 16px;
+  border-radius: 10px;
+  font-weight: bold;
+  font-size: 1.4rem;
+}
+
+/* 上位3人の表示用エリア */
+.top-three {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 40px;
+}
+
+/* 個別カード */
+.top-card {
+  background-color: #fff;
+  color: #484e88;
+  border-radius: 12px;
+  text-align: center;
+  padding: 12px;
+  width: 140px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+  font-size: 1.2rem;
+  font-weight: bold;
+  position: relative;
+}
+
+/* 王冠など強調 */
+.top-card .rank-num {
+  position: absolute;
+  top: -18px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: gold;
+  color: #fff;
+  font-size: 1rem;
+  padding: 6px 12px;
+  border-radius: 16px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* 高さ調整（1位を中央に大きく） */
+.top-card.rank-1 {
+  transform: translateY(-20px);
+  z-index: 2;
+  width: 160px;
+}
+.top-card.rank-2,
+.top-card.rank-3 {
+  width: 130px;
+}
+
+/* 部門セレクトのラベル調整 */
+.ranking-filter label {
+  color: #fff;
+  font-size: 1.3rem;
+  margin-right: 0.5rem;
+}
+.ranking-filter select {
+  font-size: 1.1rem;
+  padding: 0.3rem;
+  border-radius: 6px;
+}
+.ranking-filter {
+  display: flex;
+  margin-top: 60px;
+  margin-left: 72px;
+  width: fit-content;
+}
