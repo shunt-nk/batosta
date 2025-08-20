@@ -33,15 +33,35 @@ function getAvatarStatusWithEquip($pdo, $user_id) {
     'equip_defense' => (int)$equip['equip_defense']
   ];
 }
-function renderAvatarLayers($equipped) {
+// 現在の選択を取得
+function fetchSelectedParts(PDO $pdo, int $user_id): array {
+  $stmt = $pdo->prepare("
+    SELECT u.slot, c.image_path
+    FROM user_avatar_parts u
+    JOIN avatar_parts_catalog c ON u.part_id = c.id
+    WHERE u.user_id = ?
+  ");
+  $stmt->execute([$user_id]);
+  $bySlot = [];
+  foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
+    $bySlot[$row['slot']] = $row['image_path'];
+  }
+  return $bySlot;
+}
+function renderAvatarLayers(array $bySlot): string {
+  $order = [
+    'body_base',   // 性別によって差し替わる想定
+    'hair_back',
+    'eye_left','eye_right',
+    'nose',
+    'mouth',
+    'hair_front',
+  ];
   $html = '<div class="avatar-container">';
-  $html .= '<img src="assets/avatars/base.png" class="avatar-layer">';
-  $slots = ['head', 'body', 'weapon', 'shield', 'feet'];
-  foreach ($slots as $slot) {
-    if (!empty($equipped[$slot]['image_path'])) {
-      $path = htmlspecialchars($equipped[$slot]['image_path']);
-      $timestamp = time(); // キャッシュ防止
-      $html .= '<img src="assets/avatars/' . $path . '?v=' . $timestamp . '" class="avatar-layer slot-' . $slot . '">';
+  foreach ($order as $slot) {
+    if (!empty($bySlot[$slot])) {
+      $src = htmlspecialchars($bySlot[$slot], ENT_QUOTES, 'UTF-8');
+      $html .= '<img class="avatar-layer slot-'.$slot.'" src="'.$src.'" alt="'.$slot.'">';
     }
   }
   $html .= '</div>';

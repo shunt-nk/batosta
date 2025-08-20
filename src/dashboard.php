@@ -5,13 +5,17 @@ require 'includes/functions.php';
 
 
 if (!isset($_SESSION['user'])) {
-  header("Location: login.php");
+  header("Location: index.php");
   exit;
 }
+
 
 $user = $_SESSION['user'];
 $user_id = $user['id'];
 $status = getAvatarStatus($pdo, $user_id);
+// 現在の装備（=アバターパーツ）を取得
+$selectedParts = fetchSelectedParts($pdo, $user_id);
+echo renderAvatarLayers($selectedParts);
 
 // アバター情報
 $stmt = $pdo->prepare("SELECT * FROM avatars WHERE user_id = ?");
@@ -90,7 +94,7 @@ $current_page = 'home';
       <p>攻撃力：<?= $status['attack'] ?> / 防御力：<?= $status['defense'] ?></p>    </section>
     <section class="avatar_section">
       <h2>あなたのアバター</h2>
-      <?= renderAvatarLayers($equipped) ?>
+      <?= renderAvatarLayers($selectedParts) ?>
     </section>
   </div>
   

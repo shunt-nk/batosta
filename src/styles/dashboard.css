@@ -51,12 +51,25 @@ h3 {
   margin: auto;
 }
 .avatar-layer {
-  margin-top: 30px;
   position: absolute;
-  top: -70px;
-  left: 0;
+  inset: 0; /* top/right/bottom/left を0で揃える */
   width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
+.slot-hair_front {
+  z-index: 10;
+}
+.slot-accessory_head {
+  z-index: 11;
+}
+.slot-weapon {
+  z-index: 12;
+}
+.slot-shield {
+  z-index: 13;
+}
+
 /* 装備の各レイヤー */
 
 .slot-weapon {
