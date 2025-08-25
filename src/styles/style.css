@@ -22,5 +22,42 @@ body {
 }
 main {
   flex: 1;
-  padding: 2rem;
 }
+/* ベース顔・髪など */
+.slot-body {
+  z-index: 1;
+}
+.slot-hair {
+  z-index: 2;
+}
+.slot-eyes {
+  z-index: 3;
+}
+.slot-mouth {
+  z-index: 4;
+}
+
+/* 手・装備 */
+.slot-hand-back {
+  z-index: 5;
+}
+.slot-weapon {
+  z-index: 6;
+}
+.slot-hand-front {
+  z-index: 7;
+}
+.slot-shield {
+  z-index: 8;
+}
+
+/* 服・鎧・靴（好みで前後を調整） */
+.slot-outfit {
+  z-index: 5;
+} /* 体の上、手より下 */
+.slot-armor {
+  z-index: 6;
+} /* outfitの上（鎧） */
+.slot-boots {
+  z-index: 2;
+} /* 体の下半分想定なら低め */

@@ -1,0 +1,186 @@
+:root {
+  --bg: #5d73a9; /* 画面の明るい背景 */
+  --panel: #fff2d8; /* 右パネルのベージュ */
+  --panel-border: #e3cfa6; /* パネル枠ライン */
+  --primary: #ffcc80; /* 左ナビの黄土色 */
+  --primary-dk: #e6b76f;
+  --accent: #36c56c; /* 選択チェックの緑 */
+  --text: #4b3f2b;
+}
+body {
+  background: var(--bg);
+}
+/* 全体3カラム */
+.layout {
+  display: grid;
+  grid-template-columns: 96px 1fr 460px;
+  gap: 18px;
+  padding: 8px 0;
+}
+
+/* 左の縦アイコン */
+.leftnav {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+}
+.leftnav button {
+  width: 72px;
+  height: 72px;
+  border: none;
+  cursor: pointer;
+  border-radius: 50%;
+  background: linear-gradient(#ffe3ad, #ffc46d);
+  box-shadow: 0 2px 0 var(--primary-dk), inset 0 0 0 2px rgba(0, 0, 0, 0.08);
+  color: #6b4d22;
+  font-weight: 700;
+}
+.leftnav button.active {
+  outline: 3px solid #fff;
+  box-shadow: 0 0 0 3px var(--accent), 0 2px 0 var(--primary-dk);
+}
+
+/* 中央プレビュー */
+.preview {
+  border-radius: 24px;
+  padding: 16px;
+  min-height: 420px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+}
+/* 中央プレビュー枠だけ変更 */
+.avatar-container {
+  position: relative;
+  width: 360px; /* タブレットで見やすい幅。お好みで */
+  height: 540px; /* もし古いブラウザ対応なら height: 540px; を直書きでもOK */
+}
+.avatar-layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain; /* 同一キャンバス前提なので contain でOK */
+}
+.slot-body {
+  z-index: 1;
+}
+.slot-hair {
+  z-index: 2;
+}
+.slot-eyes {
+  z-index: 3;
+}
+.slot-mouth {
+  z-index: 4;
+}
+.slot-outfit {
+  z-index: 6;
+}
+.slot-weapon {
+  z-index: 8;
+}
+.slot-hand {
+  z-index: 5;
+} /* 手は最前で握って見せる */
+
+/* 右パネル（ベージュのボード風） */
+.sidebar {
+  background: var(--panel);
+  border: 2px solid var(--panel-border);
+  border-radius: 22px;
+  padding: 14px 16px;
+  color: var(--text);
+  box-shadow: 0 6px 0 rgba(0, 0, 0, 0.05);
+}
+.panel-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.tab-badges {
+  margin-left: auto;
+  display: flex;
+  gap: 8px;
+}
+.badge {
+  background: #ffe7b6;
+  border: 1px dashed #e0c493;
+  color: #6b4d22;
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 10px;
+}
+
+/* パーツグリッド */
+.parts {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  max-height: 60vh;
+  overflow: auto;
+  padding-right: 4px;
+}
+.card {
+  position: relative;
+  background: #fff7e6;
+  border-radius: 16px;
+  padding: 10px;
+  border: 2px dashed #e6d4ae;
+  cursor: pointer;
+  text-align: center;
+}
+.card img {
+  width: 100%;
+  height: auto;
+}
+.card .label {
+  font-size: 12px;
+  color: #6b4d22;
+  margin-top: 4px;
+}
+.card.selected {
+  border-style: solid;
+  border-color: var(--accent);
+}
+
+/* 選択チェック（右上） */
+.card.selected::after {
+  content: "";
+  position: absolute;
+  right: 8px;
+  top: 8px;
+  width: 22px;
+  height: 22px;
+  background: var(--accent);
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px #fff inset;
+  -webkit-mask: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="white" d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4z"/></svg>')
+    center/16px 16px no-repeat;
+  mask: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="white" d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4z"/></svg>')
+    center/16px 16px no-repeat;
+}
+
+/* 保存バー */
+.savebar {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 10px;
+}
+.savebar button {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  padding: 10px 18px;
+  font-weight: 700;
+  box-shadow: 0 2px 0 #24a455;
+  cursor: pointer;
+}
+.savebar button:active {
+  transform: translateY(1px);
+  box-shadow: 0 1px 0 #24a455;
+}

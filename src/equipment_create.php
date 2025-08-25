@@ -78,7 +78,8 @@ $sql = "
 ";
 
 // WHERE句追加
-$conditions = [];
+// equipment_create.php の $sql 生成時に:
+$conditions[] = "e.is_initial = 0";
 $params = [];
 
 if ($slot) {

@@ -1,43 +1,57 @@
-/* avatar_customize.css */
-
+/* タイトル */
 h1 {
-  font-size: 2rem;
-  margin-bottom: 1rem;
+  font-size: 1.6rem;
+  margin: 8px 0 12px;
   text-align: center;
   color: #fff;
 }
-.status-summary p {
-  color: #fff;
-}
 
-.customize-grid {
+/* 上のカテゴリタブ */
+.slot-tabs {
   display: flex;
-  gap: 2rem;
-  flex-wrap: wrap;
-}
-
-.left-panel {
-  flex: 1;
-  min-width: 300px;
-  display: flex;
-  flex-direction: column;
+  gap: 12px;
   align-items: center;
-  gap: 1rem;
+  justify-content: center;
+  margin-bottom: 10px;
+}
+.slot-tab {
+  width: 64px;
+  height: 64px;
+  border-radius: 14px;
+  background: #fff;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.08);
+  transition: transform 0.15s;
+}
+.slot-tab img {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+}
+.slot-tab:hover {
+  transform: translateY(-2px);
+}
+.slot-tab.active {
+  background: linear-gradient(180deg, #ff6aa5, #ff8a62);
 }
 
-.right-panel {
-  flex: 1;
-  min-width: 300px;
-  background-color: #444b8a;
-  padding: 1rem;
-  border-radius: 10px;
-  overflow-y: auto;
-  max-height: 700px;
+/* レイアウト：中央プレビュー + 右パネル */
+.customize-layout {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 16px;
 }
 
+/* 中央：アバター・現在装備 */
+.avatar-panel {
+  background: #484e88;
+  border-radius: 20px;
+  padding: 14px;
+}
 .avatar-preview-wrapper {
-  width: 300px;
-  height: 360px;
+  width: 360px;
+  aspect-ratio: 2/3;
   position: relative;
   background: #ffffff;
   border-radius: 20px;
@@ -45,164 +59,215 @@ h1 {
   justify-content: center;
   align-items: center;
   overflow: hidden;
+  margin: 0 auto 8px;
 }
-
 .avatar-container {
   position: relative;
-  width: 240px;
-  height: 360px;
+  width: 260px;
+  aspect-ratio: 2/3;
 }
-
-.avatar-layer {
+.base-layer {
   position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   object-fit: contain;
+  z-index: 0;
+}
+/* ベース重ね順 */
+.base-body {
   z-index: 1;
 }
-
-.slot-icon {
-  position: absolute;
-  width: 36px;
-  height: 36px;
+.base-hair {
   z-index: 2;
-  opacity: 0.7;
 }
-
-.slot-icon[data-slot="head"] {
-  top: 0;
+.base-eyes {
+  z-index: 3;
+}
+.base-mouth {
+  z-index: 4;
+}
+/* 地面の影 */
+.avatar-container::after {
+  content: "";
+  position: absolute;
   left: 50%;
   transform: translateX(-50%);
+  bottom: -4px;
+  width: 56%;
+  height: 16px;
+  background: rgba(0, 0, 0, 0.25);
+  filter: blur(6px);
+  border-radius: 50%;
 }
 
-.slot-icon[data-slot="body"] {
-  top: 60px;
-  left: 50%;
-  transform: translateX(-50%);
-}
-
-.slot-icon[data-slot="weapon"] {
-  bottom: 10px;
-  left: 20px;
-}
-
-.slot-icon[data-slot="shield"] {
-  bottom: 10px;
-  right: 20px;
-}
-
-.slot-icon[data-slot="feet"] {
-  bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
-}
-
-.status-summary {
-  font-size: 1.1rem;
-  margin-top: 0.5rem;
-}
-
-.preview-detail {
-  display: none;
-}
-
-.equip-section {
-  margin-bottom: 2rem;
-}
-
-.equip-section h2 {
-  font-size: 1.2rem;
-  margin-bottom: 0.5rem;
-  color: #fff;
-}
-
-.equip-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
-  gap: 10px;
-}
-
-.equip-thumb {
-  background: #fff;
-  border: none;
-  border-radius: 10px;
-  padding: 5px;
-  width: 60px;
-  height: 60px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: transform 0.2s;
-}
-
-.equip-thumb:hover {
-  transform: scale(1.1);
-}
-
-.equip-thumb img {
-  width: 100%;
-  height: 100%;
+/* 装備レイヤー（位置は従来の .slot-* を使用） */
+.equip-layer {
+  position: absolute;
   object-fit: contain;
 }
-
-/* 現在装備中表示 */
-.current-equips {
-  display: flex;
-  justify-content: center;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
+.slot-weapon {
+  width: 25%;
+  top: 1%;
+  left: 2%;
+  z-index: 6;
+  transform: rotate(-30deg);
+}
+.slot-shield {
+  width: 35%;
+  top: 15%;
+  right: 15%;
+  z-index: 6;
+}
+.slot-head {
+  width: 83%;
+  top: -28%;
+  left: 8%;
+  z-index: 7;
+}
+.slot-body {
+  width: 60%;
+  top: 40%;
+  left: 20%;
+  z-index: 5;
+}
+.slot-feet {
+  width: 40%;
+  bottom: 0;
+  left: 30%;
+  z-index: 4;
 }
 
+/* 現在装備の並び */
+.current-equips {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+  margin-top: 8px;
+}
 .current-equip-thumb {
   position: relative;
-  width: 80px;
-  height: 80px;
-  padding: 5px;
+  width: 100%;
+  padding-top: 100%;
   border: none;
   background: #fff;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  border-radius: 12px;
+  display: block;
+  overflow: hidden;
 }
 .current-equip-thumb img {
-  width: 100%;
-  height: 100%;
+  position: absolute;
+  inset: 8px;
+  width: calc(100% - 16px);
+  height: calc(100% - 16px);
   object-fit: contain;
-  position: static; /* ← 修正 */
 }
-
 .current-equip-thumb .remove-btn {
   position: absolute;
   top: -6px;
   right: -6px;
   background: crimson;
-  color: white;
+  color: #fff;
   border-radius: 50%;
   padding: 2px 6px;
   font-size: 0.8rem;
   line-height: 1;
   cursor: pointer;
 }
+.current-equip-thumb.empty {
+  background: rgba(255, 255, 255, 0.5);
+}
 
-/* モーダル */
+/* ステータス */
+.status-summary {
+  text-align: center;
+  margin-top: 6px;
+  color: #fff;
+}
+
+/* 右：プレビュー + グリッド */
+.right-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.detail-card {
+  background: #db9963;
+  color: #fff;
+  border-radius: 14px;
+  padding: 12px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+.detail-thumb {
+  width: 120px;
+  height: 120px;
+  border-radius: 12px;
+  background: #fff;
+  display: grid;
+  place-items: center;
+}
+.detail-thumb img {
+  width: 90px;
+  height: 90px;
+  object-fit: contain;
+}
+.detail-meta h2 {
+  margin: 2px 0 6px;
+}
+.detail-empty {
+  padding: 20px 10px;
+}
+
+.grid-title {
+  color: #fff;
+  margin: 0 0 4px;
+}
+
+.equip-grid {
+  background: #444b8a;
+  border-radius: 10px;
+  padding: 12px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+.equip-thumb {
+  background: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 5px;
+  width: 100%;
+  aspect-ratio: 1/1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s;
+}
+.equip-thumb:hover {
+  transform: scale(1.05);
+}
+.equip-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* モーダルは既存そのまま */
 .modal {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  inset: 0;
   background: rgba(0, 0, 0, 0.6);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
 }
-
 .modal-content {
-  background: white;
-  color: black;
+  background: #fff;
+  color: #000;
   border-radius: 10px;
   padding: 2rem;
   max-width: 300px;
@@ -210,7 +275,6 @@ h1 {
   text-align: center;
   position: relative;
 }
-
 .close-btn {
   position: absolute;
   top: 10px;
@@ -218,53 +282,22 @@ h1 {
   cursor: pointer;
   font-size: 1.5rem;
 }
-
 .equip-confirm-btn {
-  background-color: #4d5fa9;
-  color: white;
+  background: #4d5fa9;
+  color: #fff;
   padding: 0.5rem 1rem;
   border: none;
   border-radius: 6px;
   margin-top: 1rem;
   cursor: pointer;
 }
-/* 武器 */
-.slot-weapon {
-  width: 25%;
-  top: 1%;
-  left: 2%;
-  z-index: 3;
-  transform: rotate(-30deg);
-}
 
-/* 盾 */
-.slot-shield {
-  width: 35%;
-  top: 15%;
-  right: 15%;
-  z-index: 3;
-}
-
-/* 頭防具 */
-.slot-head {
-  width: 83%;
-  top: -28%;
-  left: 8%;
-  z-index: 4;
-}
-
-/* 体防具 */
-.slot-body {
-  width: 60%;
-  top: 40%;
-  left: 20%;
-  z-index: 2;
-}
-
-/* 足防具 */
-.slot-feet {
-  width: 40%;
-  bottom: 0;
-  left: 30%;
-  z-index: 1;
+/* レスポンシブ */
+@media (max-width: 960px) {
+  .customize-layout {
+    grid-template-columns: 1fr;
+  }
+  .detail-card {
+    order: -1;
+  }
 }
