@@ -23,7 +23,21 @@ body {
 main {
   flex: 1;
 }
-/* ベース顔・髪など */
+.avatar-container {
+  position: relative;
+  width: 360px; /* デザインカンプに近い見た目 */
+  aspect-ratio: 2 / 3; /* 縦長表示。不要なら height 固定でもOK */
+  margin: 0 auto;
+}
+.avatar-layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  z-index: 0;
+}
+
 .slot-body {
   z-index: 1;
 }
@@ -36,28 +50,14 @@ main {
 .slot-mouth {
   z-index: 4;
 }
-
-/* 手・装備 */
-.slot-hand-back {
-  z-index: 5;
-}
-.slot-weapon {
-  z-index: 6;
-}
-.slot-hand-front {
-  z-index: 7;
-}
-.slot-shield {
-  z-index: 8;
-}
-
-/* 服・鎧・靴（好みで前後を調整） */
+/* 服 */
 .slot-outfit {
-  z-index: 5;
-} /* 体の上、手より下 */
-.slot-armor {
   z-index: 6;
-} /* outfitの上（鎧） */
-.slot-boots {
-  z-index: 2;
-} /* 体の下半分想定なら低め */
+}
+/* 武器と手（手は最前＝握って見える） */
+.slot-weapon {
+  z-index: 9;
+}
+.slot-hand {
+  z-index: 5;
+}

@@ -39,42 +39,40 @@ function fetchSelectedParts(PDO $pdo, int $user_id, array $slots = ['body','hair
 /**
  * 任意スロットだけまとめて取得（hand_base/hand_weapon などを追加で取りたい時に）
  */
-function fetchSelectedPartsBySlots(PDO $pdo, int $userId, array $slots): array {
-  if (empty($slots)) return [];
+function fetchSelectedPartsBySlots(PDO $pdo, int $user_id, array $slots): array {
+  if (!$slots) return [];
   $in = implode(',', array_fill(0, count($slots), '?'));
-  $params = array_merge([$userId], $slots);
-
+  $params = array_merge([$user_id], $slots);
   $sql = "SELECT u.slot, c.image_path
           FROM user_avatar_parts u
-          JOIN avatar_parts_catalog c ON u.part_id=c.id
+          JOIN avatar_parts_catalog c ON c.id=u.part_id
           WHERE u.user_id=? AND u.slot IN ($in)";
   $st = $pdo->prepare($sql);
   $st->execute($params);
-
   $out = [];
-  foreach ($st->fetchAll(PDO::FETCH_ASSOC) as $r) {
-    $out[$r['slot']] = $r['image_path'];
-  }
+  foreach ($st->fetchAll(PDO::FETCH_ASSOC) as $r) $out[$r['slot']] = $r['image_path'];
   return $out;
 }
 
 /**
  * 装備の image_path を slot => path で返す（ダッシュボードやプレビュー用）
  */
-function fetchEquipPaths(PDO $pdo, int $userId): array {
+// includes/functions.php
+function fetchEquipPaths(PDO $pdo, int $user_id): array {
   $st = $pdo->prepare("
-    SELECT uae.slot AS slot, e.image_path AS path
+    SELECT
+      CASE
+        WHEN uae.slot='armor' THEN 'outfit'
+        ELSE uae.slot
+      END AS slot,
+      e.image_path
     FROM user_avatar_equipments uae
     JOIN equipments e ON e.id = uae.equipment_id
     WHERE uae.user_id = ?
   ");
-  $st->execute([$userId]);
-
-  $out = [];
-  foreach ($st->fetchAll(PDO::FETCH_ASSOC) as $r) {
-    $out[$r['slot']] = $r['path'];
-  }
-  return $out;
+  $st->execute([$user_id]);
+  $rows = $st->fetchAll(PDO::FETCH_ASSOC);
+  return $rows ? array_column($rows, 'image_path', 'slot') : [];
 }
 
 /**
@@ -82,7 +80,7 @@ function fetchEquipPaths(PDO $pdo, int $userId): array {
  * レイヤー順：body → hair → eyes → mouth
  */
 function renderAvatarLayers(array $bySlot): string {
-  $order = ['body','hair','eyes','mouth'];
+  $order = ['body','hair','eyes','mouth','hand'];
   $html = '<div class="avatar-container">';
   foreach ($order as $slot) {
     if (!empty($bySlot[$slot])) {
@@ -100,36 +98,28 @@ function renderAvatarLayers(array $bySlot): string {
  * - hand は 1枚のレイヤに統合。weapon があれば hand_weapon、無ければ hand_base を自動選択
  * レイヤー順：body > hair > eyes > mouth > outfit > weapon > hand
  */
-function renderAvatarFull(array $partsBySlot, array $equipBySlot = []): string {
-  // hand 自動切替（画像パスを partsBySlot['hand'] に確定させる）
-  $hasWeapon = !empty($equipBySlot['weapon']);
-  if ($hasWeapon) {
-    if (!empty($partsBySlot['hand_weapon'])) {
-      $partsBySlot['hand'] = $partsBySlot['hand_weapon'];
-    } elseif (!empty($partsBySlot['hand_base'])) {
-      $partsBySlot['hand'] = $partsBySlot['hand_base'];
-    }
-  } else {
-    if (!empty($partsBySlot['hand_base'])) {
-      $partsBySlot['hand'] = $partsBySlot['hand_base'];
-    } elseif (!empty($partsBySlot['hand_weapon'])) {
-      $partsBySlot['hand'] = $partsBySlot['hand_weapon'];
-    }
-  }
+function renderAvatarFull(array $partsBySlot, array $equipBySlot = []): string {  // hand の自動切替: weaponがあれば hand_weapon、なければ hand_base
+  // functions.php 内 renderAvatarFull の冒頭
+if (!empty($equipBySlot['weapon'])) {
+  if (!empty($partsBySlot['hand_weapon'])) $partsBySlot['hand'] = $partsBySlot['hand_weapon'];
+  elseif (!empty($partsBySlot['hand_base'])) $partsBySlot['hand'] = $partsBySlot['hand_base'];
+} else {
+  if (!empty($partsBySlot['hand_base'])) $partsBySlot['hand'] = $partsBySlot['hand_base'];
+  elseif (!empty($partsBySlot['hand_weapon'])) $partsBySlot['hand'] = $partsBySlot['hand_weapon'];
+}
 
-  $order = ['body','hair','eyes','mouth','outfit','weapon','hand'];
+
+  // レイヤ順（body→hair→eyes→mouth→outfit→weapon→hand）
+  $order = ['body','hair','eyes','mouth','outfit','head','shield','weapon','hand','boots'];
 
   $html = '<div class="avatar-container">';
   foreach ($order as $slot) {
     $src = $partsBySlot[$slot] ?? $equipBySlot[$slot] ?? null;
     if (!$src) continue;
-    $html .= '<img class="avatar-layer slot-'.$slot.'" src="'.
-             htmlspecialchars($src, ENT_QUOTES, 'UTF-8').'" alt="'.$slot.'">';
+    $html .= '<img class="avatar-layer slot-'.$slot.'" src="'.htmlspecialchars($src, ENT_QUOTES, 'UTF-8').'" alt="'.$slot.'">';
   }
-  $html .= '</div>';
-  return $html;
+  return $html.'</div>';
 }
-
 /**
  * 必要経験値（任意に使用）
  */
@@ -140,14 +130,15 @@ function requiredExp(int $level): int {
 /**
  * 基本＋装備の合算ステータス（欠損時でも安全値で返す）
  */
+// includes/functions.php
 function getAvatarStatusWithEquip(PDO $pdo, int $user_id): array {
-  // 基本ステータス
+  // 基礎
   $stmt = $pdo->prepare("
     SELECT
-      COALESCE(level, 1)   AS level,
-      COALESCE(exp, 0)     AS exp,
-      COALESCE(attack, 0)  AS base_attack,
-      COALESCE(defense, 0) AS base_defense
+      COALESCE(level, 1)          AS level,
+      COALESCE(exp, 0)            AS exp,
+      COALESCE(base_attack, 0)    AS base_attack,
+      COALESCE(base_defense, 0)   AS base_defense
     FROM avatars_status
     WHERE user_id = ?
     LIMIT 1
@@ -157,9 +148,8 @@ function getAvatarStatusWithEquip(PDO $pdo, int $user_id): array {
 
   // 装備加算
   $stmt = $pdo->prepare("
-    SELECT
-      COALESCE(SUM(e.attack), 0)  AS equip_attack,
-      COALESCE(SUM(e.defense), 0) AS equip_defense
+    SELECT COALESCE(SUM(e.attack),0) AS equip_attack,
+           COALESCE(SUM(e.defense),0) AS equip_defense
     FROM user_avatar_equipments uae
     JOIN equipments e ON uae.equipment_id = e.id
     WHERE uae.user_id = ?
@@ -168,14 +158,14 @@ function getAvatarStatusWithEquip(PDO $pdo, int $user_id): array {
   $equip = $stmt->fetch(PDO::FETCH_ASSOC) ?: ['equip_attack'=>0,'equip_defense'=>0];
 
   return [
-    'level'        => (int)$base['level'],
-    'exp'          => (int)$base['exp'],
-    'attack'       => (int)$base['base_attack']  + (int)$equip['equip_attack'],
-    'defense'      => (int)$base['base_defense'] + (int)$equip['equip_defense'],
-    'base_attack'  => (int)$base['base_attack'],
-    'base_defense' => (int)$base['base_defense'],
-    'equip_attack' => (int)$equip['equip_attack'],
-    'equip_defense'=> (int)$equip['equip_defense'],
+    'level'         => (int)$base['level'],
+    'exp'           => (int)$base['exp'],
+    'base_attack'   => (int)$base['base_attack'],
+    'base_defense'  => (int)$base['base_defense'],
+    'equip_attack'  => (int)$equip['equip_attack'],
+    'equip_defense' => (int)$equip['equip_defense'],
+    'attack'        => (int)$base['base_attack']  + (int)$equip['equip_attack'],
+    'defense'       => (int)$base['base_defense'] + (int)$equip['equip_defense'],
   ];
 }
 
@@ -239,4 +229,105 @@ function partOptionsCompat(PDO $pdo, string $slot, string $gender): array {
   $st = $pdo->prepare($sql);
   $st->execute([$slot, $gender]);
   return $st->fetchAll(PDO::FETCH_ASSOC);
+}
+// --- 1) ユーザーの性別を body 画像名から推定（DBに gender カラムが無い前提ならこれで十分） ---
+// すでにあるなら差し替え／無ければ追加
+
+// 1) 性別取得：まず avatars.gender、なければ現在装備の outfit 画像パスで推定
+function getUserGender(PDO $pdo, int $user_id): string {
+  $st = $pdo->prepare("SELECT gender FROM avatars WHERE user_id=? LIMIT 1");
+  $st->execute([$user_id]);
+  $g = strtolower((string)($st->fetchColumn() ?: ''));
+  if ($g === 'male' || $g === 'female') return $g;
+
+  // fallback: いま装備している outfit のパスから推定
+  $st = $pdo->prepare("
+    SELECT e.image_path
+    FROM user_avatar_equipments uae
+    JOIN equipments e ON e.id = uae.equipment_id
+    WHERE uae.user_id=? AND uae.slot='outfit'
+    LIMIT 1
+  ");
+  $st->execute([$user_id]);
+  $p = (string)($st->fetchColumn() ?: '');
+  if ($p !== '' && stripos($p, 'female') !== false) return 'female';
+  if ($p !== '' && stripos($p, 'male')   !== false) return 'male';
+
+  return 'male'; // 最後のデフォルト
+}
+
+// 2) 性別に合った初期 outfit の equipment_id を見つける
+function findInitialOutfitId(PDO $pdo, string $gender): ?int {
+  // gender_scope カラムがあればそれを優先（無ければ画像パスで判定）
+  $hasGenderScope = (bool)$pdo->query("
+    SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME='equipments' AND COLUMN_NAME='gender_scope'
+  ")->fetchColumn();
+
+  if ($hasGenderScope) {
+    $st = $pdo->prepare("
+      SELECT id
+      FROM equipments
+      WHERE slot='outfit' AND COALESCE(is_initial,0)=1
+        AND (gender_scope=? OR gender_scope='unisex')
+      ORDER BY (gender_scope='unisex') ASC, id ASC
+      LIMIT 1
+    ");
+    $st->execute([$gender]);
+    if ($id = $st->fetchColumn()) return (int)$id;
+  }
+
+  // 画像パス名で厳密に
+  if ($gender === 'female') {
+    $st = $pdo->query("
+      SELECT id FROM equipments
+      WHERE slot='outfit' AND COALESCE(is_initial,0)=1
+        AND image_path REGEXP '(?i)(^|[_/])female([_.]|$)'
+      ORDER BY id ASC LIMIT 1
+    ");
+    if ($id = $st->fetchColumn()) return (int)$id;
+  } else {
+    $st = $pdo->query("
+      SELECT id FROM equipments
+      WHERE slot='outfit' AND COALESCE(is_initial,0)=1
+        AND image_path REGEXP '(?i)(^|[_/])male([_.]|$)'
+      ORDER BY id ASC LIMIT 1
+    ");
+    if ($id = $st->fetchColumn()) return (int)$id;
+  }
+
+  // それでも無ければ is_initial=1 の先頭
+  $st = $pdo->query("
+    SELECT id FROM equipments
+    WHERE slot='outfit' AND COALESCE(is_initial,0)=1
+    ORDER BY id ASC LIMIT 1
+  ");
+  return ($id = $st->fetchColumn()) ? (int)$id : null;
+}
+
+// --- 3) まだ outfit を装備していなければ、性別に合った初期 outfit を装備として保存 ---
+// functions.php
+function ensureInitialOutfitEquipped(PDO $pdo, int $user_id): void {
+  // 既に outfit 装備があれば何もしない
+  $st = $pdo->prepare("SELECT 1 FROM user_avatar_equipments WHERE user_id=? AND slot='outfit' LIMIT 1");
+  $st->execute([$user_id]);
+  if ($st->fetchColumn()) return;
+
+  $gender  = getUserGender($pdo, $user_id);
+  $outfitId = findInitialOutfitId($pdo, $gender);
+  if (!$outfitId) return;
+
+  $ins = $pdo->prepare("INSERT INTO user_avatar_equipments (user_id, slot, equipment_id) VALUES (?, 'outfit', ?)");
+  $ins->execute([$user_id, $outfitId]);
+}
+
+// --- 4) どの画面でも同じ描画入力を得るユーティリティ（手パーツもまとめて取得） ---
+function loadAvatarStacks(PDO $pdo, int $user_id): array {
+  // hand_* を含めて取得（DBにあるものだけ）
+  $parts = fetchSelectedPartsBySlots($pdo, $user_id, ['body','hair','eyes','mouth','hand_base','hand_weapon']);
+
+  // 装備（DBそのまま）
+  $equip = fetchEquipPaths($pdo, $user_id);
+
+  return [$parts, $equip];
 }

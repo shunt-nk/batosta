@@ -8,8 +8,27 @@ require 'includes/functions.php';
 if (!isset($_SESSION['user'])) { header("Location: index.php"); exit; }
 $user_id = (int)$_SESSION['user']['id'];
 
+
+$needsAvatar = !hasAvatarBody($pdo, $user_id);
+
+if ($needsAvatar) {
+  $parts = []; $equipPaths = [];
+} else {
+  $parts      = fetchSelectedPartsBySlots($pdo, $user_id, ['body','hair','eyes','mouth','hand_base','hand_weapon']);
+  $equipPaths = fetchEquipPaths($pdo, $user_id);
+
+  // hand を確定（武器があれば hand_weapon、無ければ hand_base）
+  unset($parts['hand']);
+  if (!empty($equipPaths['weapon']) && !empty($parts['hand_weapon'])) {
+    $parts['hand'] = $parts['hand_weapon'];
+  } elseif (!empty($parts['hand_base'])) {
+    $parts['hand'] = $parts['hand_base'];
+  }
+}
+
 $selected_slot = $_GET['slot'] ?? 'weapon'; // 初期タブ
 
+list($parts, $equipPaths) = loadAvatarStacks($pdo, $user_id);
 // --- ステータス（合算）
 $status = getAvatarStatusWithEquip($pdo, $user_id);
 
@@ -61,11 +80,9 @@ foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $eq) {
 // --- プレビュー用にパス配列を作成（slot => image_path）
 $currentEquipPaths = [];
 foreach ($current as $slot => $row) {
-  if (!empty($row['image_path'])) {
-    $currentEquipPaths[$slot] = $row['image_path'];
-  }
+  $key = ($slot === 'armor') ? 'outfit' : $slot;
+  if (!empty($row['image_path'])) $currentEquipPaths[$key] = $row['image_path'];
 }
-
 // --- 所持装備（slotごとに配列化）
 $stmt = $pdo->prepare("
   SELECT ue.*, e.name, e.slot, e.image_path, e.attack, e.defense
@@ -80,10 +97,49 @@ foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $eq) {
 }
 
 // 表示ラベル
-$slot_labels = ['weapon'=>'武器','shield'=>'盾','head'=>'頭防具','body'=>'体防具','feet'=>'足防具'];
-
+$slots = ['weapon','shield','head','outfit','boots'];
+$slot_labels = [
+  'weapon'=>'武器','shield'=>'盾','head'=>'頭防具','outfit'=>'体防具','boots'=>'足防具'
+];
 $current_page = 'customize';
-?>
+
+
+if ($needsAvatar) {
+  ?>
+  <!doctype html>
+  <html lang="ja">
+  <head>
+    <meta charset="utf-8">
+    <title>着せ替え | バトスタ</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles/style.css">
+  </head>
+  <body>
+    <div class="container">
+      <?php include 'includes/navbar.php'; ?>
+      <main class="content">
+        <h2>着せ替え</h2>
+        <div style="background:#fff7e6;border:2px dashed #e6d4ae;color:#6b4d22;padding:12px 14px;border-radius:12px;margin:16px 0;">
+          まずはアバターを作成しましょう →
+          <a href="avatar_create.php?first=1" style="font-weight:700;color:#2e7d32;text-decoration:underline;">アバター作成へ</a>
+        </div>
+      </main>
+    </div>
+  </body>
+  </html>
+  <?php
+  exit;
+}
+
+// スロットタブ（DBの名前に統一）
+$slots = ['weapon','shield','head','outfit','boots'];
+$labels = [
+  'weapon' => '武器',
+  'shield' => '盾',
+  'head'   => '頭防具',
+  'outfit' => '体防具',
+  'boots'  => '足防具',
+];
 ?>
 <!doctype html>
 <html lang="ja">
@@ -117,8 +173,7 @@ $current_page = 'customize';
   <main class="content">
     <!-- カテゴリタブ -->
     <div class="slot-tabs">
-      <?php foreach (['weapon','shield','head','body','feet'] as $s):
-        $active = ($selected_slot === $s) ? 'active' : ''; ?>
+    <?php foreach (['weapon','shield','head','outfit','boots'] as $s): ?>        $active = ($selected_slot === $s) ? 'active' : ''; ?>
         <a class="slot-tab <?= $active ?>" href="?slot=<?= urlencode($s) ?>" title="<?= $slot_labels[$s] ?>">
           <img src="assets/icons/slot_<?= $s ?>.png" alt="<?= $slot_labels[$s] ?>">
         </a>
@@ -130,8 +185,19 @@ $current_page = 'customize';
       <section class="avatar-panel">
         <div class="avatar-preview-wrapper">
           <div class="avatar-container">
-          <?= renderAvatarFull($baseParts, $currentEquipPaths) ?>
+          <?= renderAvatarFull($parts, $equipPaths) ?>
           </div>
+          <nav class="slot-tabs">
+            <?php
+              $selected = $_GET['slot'] ?? 'outfit';
+              if (!in_array($selected, $slots, true)) $selected = 'outfit';
+              foreach ($slots as $s):
+            ?>
+              <a class="<?= $s===$selected?'active':'' ?>" href="?slot=<?= htmlspecialchars($s, ENT_QUOTES, 'UTF-8') ?>">
+                <?= $labels[$s] ?>
+              </a>
+            <?php endforeach; ?>
+          </nav>
         </div>
 
         <div class="status-summary">

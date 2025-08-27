@@ -66,10 +66,10 @@ h3 {
 }
 
 /* ---- アバター（重ね順の修正含む） ---- */
-.avatar-container {
+/* .avatar-container {
   position: relative;
-  width: 360px; /* デザインカンプに近い見た目 */
-  aspect-ratio: 2 / 3; /* 縦長表示。不要なら height 固定でもOK */
+  width: 360px; 
+  aspect-ratio: 2 / 3; 
   margin: 0 auto;
 }
 .avatar-layer {
@@ -79,7 +79,7 @@ h3 {
   height: 100%;
   object-fit: contain;
   z-index: 0;
-}
+} */
 .callout {
   background: #fff7e6;
   border: 2px dashed #e6d4ae;
@@ -94,7 +94,7 @@ h3 {
   text-decoration: underline;
 }
 
-/* レイヤー順：最下層→最上層（色は関係ないので数値だけ指定） */
+/* レイヤー順：最下層→最上層（色は関係ないので数値だけ指定）
 .slot-body {
   z-index: 1;
 }
@@ -108,16 +108,16 @@ h3 {
   z-index: 4;
 }
 /* 服 */
-.slot-outfit {
+/* .slot-outfit {
   z-index: 5;
 }
 /* 武器と手（手は最前＝握って見える） */
-.slot-weapon {
+/* .slot-weapon {
   z-index: 8;
 }
 .slot-hand {
   z-index: 9;
-}
+} */
 
 /* ---- レスポンシブ（狭い幅では1カラム） ---- */
 @media (max-width: 900px) {

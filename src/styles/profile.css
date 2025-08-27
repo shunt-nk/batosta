@@ -123,31 +123,6 @@
   align-items: center;
   justify-content: center;
 }
-.avatar-container {
-  position: relative;
-  width: 260px;
-  aspect-ratio: 2 / 3;
-}
-.avatar-layer {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  z-index: 0;
-}
-.slot-body {
-  z-index: 1;
-}
-.slot-hair {
-  z-index: 2;
-}
-.slot-eyes {
-  z-index: 3;
-}
-.slot-mouth {
-  z-index: 4;
-}
 .avatar-container::after {
   content: "";
   position: absolute;

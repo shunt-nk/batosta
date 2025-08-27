@@ -1,117 +1,127 @@
 <?php
 // save_avatar.php
 declare(strict_types=1);
-
 session_start();
+
 require 'includes/db.php';
+require 'includes/functions.php'; // findInitialOutfitId を使う
+
 header('Content-Type: application/json; charset=utf-8');
 
 if (!isset($_SESSION['user'])) {
   http_response_code(401);
-  echo json_encode(['success'=>false, 'error'=>'unauthorized']);
-  exit;
+  echo json_encode(['success'=>false,'error'=>'UNAUTHORIZED']); exit;
 }
 $user_id = (int)$_SESSION['user']['id'];
 
-// 受信JSONを確認
-$payload = json_decode(file_get_contents('php://input'), true);
-if (!is_array($payload)) {
+// 受信（旧:配列 / 新:{gender, parts} 両対応）
+$raw = file_get_contents('php://input');
+$payload = json_decode($raw, true);
+if ($payload === null) {
   http_response_code(400);
-  echo json_encode(['success'=>false, 'error'=>'bad payload']);
-  exit;
+  echo json_encode(['success'=>false,'error'=>'INVALID_JSON']); exit;
 }
 
-// 必須スロット（作成画面の4パーツ）
-$required = ['body', 'hair', 'eyes', 'mouth'];
-$got = array_map(static function($r){ return (string)($r['slot'] ?? ''); }, $payload);
-$missing = array_values(array_diff($required, $got));
-if (!empty($missing)) {
+$genderFromClient = null;
+$partsArray = null;
+if (is_array($payload) && array_is_list($payload)) {
+  $partsArray = $payload;
+} elseif (is_array($payload)) {
+  if (isset($payload['gender'])) {
+    $g = strtolower((string)$payload['gender']);
+    if ($g==='male' || $g==='female') $genderFromClient = $g;
+  }
+  if (isset($payload['parts']) && is_array($payload['parts'])) {
+    $partsArray = $payload['parts'];
+  }
+}
+if (!$partsArray) {
   http_response_code(400);
-  echo json_encode(['success'=>false, 'error'=>'missing slots: '.implode(',', $missing)]);
-  exit;
+  echo json_encode(['success'=>false,'error'=>'MISSING_PARTS']); exit;
+}
+
+// 4スロット整形
+$incoming = [];
+foreach ($partsArray as $row) {
+  if (!isset($row['slot'], $row['part_id'])) continue;
+  $slot = (string)$row['slot'];
+  $pid  = (int)$row['part_id'];
+  if ($pid > 0 && in_array($slot, ['body','hair','eyes','mouth'], true)) {
+    $incoming[$slot] = $pid;
+  }
+}
+if (count($incoming) < 4) {
+  http_response_code(400);
+  echo json_encode(['success'=>false,'error'=>'MISSING_SLOTS']); exit;
 }
 
 try {
   $pdo->beginTransaction();
 
-  // 1) ユーザーのベースパーツを保存（UPSERT）
-  $ins = $pdo->prepare("
-    REPLACE INTO user_avatar_parts (user_id, slot, part_id)
-    VALUES (?, ?, ?)
-  ");
-  foreach ($payload as $row) {
-    $slot    = (string)($row['slot']    ?? '');
-    $part_id = (int)   ($row['part_id'] ?? 0);
-    if ($slot === '' || $part_id <= 0) continue;
-    $ins->execute([$user_id, $slot, $part_id]);
+  // 4スロット保存（置換）
+  $pdo->prepare("DELETE FROM user_avatar_parts WHERE user_id=? AND slot IN ('body','hair','eyes','mouth')")
+      ->execute([$user_id]);
+  $insParts = $pdo->prepare("INSERT INTO user_avatar_parts (user_id, slot, part_id) VALUES (?,?,?)");
+  foreach ($incoming as $slot => $pid) $insParts->execute([$user_id, $slot, $pid]);
+
+  // hand_* 未保存なら補完
+  foreach (['hand_base','hand_weapon'] as $hs) {
+    $ex = $pdo->prepare("SELECT 1 FROM user_avatar_parts WHERE user_id=? AND slot=? LIMIT 1");
+    $ex->execute([$user_id, $hs]);
+    if (!$ex->fetchColumn()) {
+      $q = $pdo->prepare("
+        SELECT id FROM avatar_parts_catalog
+        WHERE slot=? ORDER BY COALESCE(is_default,0) DESC, id ASC LIMIT 1
+      ");
+      $q->execute([$hs]);
+      if ($pid = $q->fetchColumn()) $insParts->execute([$user_id, $hs, (int)$pid]);
+    }
   }
 
-  // 2) body の画像パスから性別を推定（female/_f を含めば女性）
-  $st = $pdo->prepare("
-    SELECT c.image_path
-    FROM user_avatar_parts u
-    JOIN avatar_parts_catalog c ON c.id = u.part_id
-    WHERE u.user_id = ? AND u.slot = 'body'
-    LIMIT 1
-  ");
-  $st->execute([$user_id]);
-  $bodyPath = (string)($st->fetchColumn() ?: '');
-  $isFemale = (strpos($bodyPath, 'female') !== false || strpos($bodyPath, '_f') !== false);
+  // 性別を確定（client 最優先、無ければ現状維持）
+  $gender = $genderFromClient ?? 'male';
 
-  // 3) outfit スロットの存在を確認
-  $chk = $pdo->prepare("SELECT COUNT(*) FROM equipments WHERE slot = 'outfit' LIMIT 1");
-  $chk->execute();
-  $hasOutfitSlot = (bool)$chk->fetchColumn();
+  // avatars.gender を UPSERT
+  $chkA = $pdo->prepare("SELECT id FROM avatars WHERE user_id=? LIMIT 1");
+  $chkA->execute([$user_id]);
+  if ($aid = $chkA->fetchColumn()) {
+    $pdo->prepare("UPDATE avatars SET gender=? WHERE id=?")->execute([$gender, (int)$aid]);
+  } else {
+    $pdo->prepare("INSERT INTO avatars (user_id, gender) VALUES (?, ?)")->execute([$user_id, $gender]);
+  }
 
-  // 4) 初期服の自動装備（key_name が無くても image_path 優先で拾う）
-  if ($hasOutfitSlot) {
-    $equipId = null;
+  // 目標の初期 outfit を gender から取得
+  $desiredOutfitId = findInitialOutfitId($pdo, $gender); // 例: female→8, male→9（DBに依存）
 
-    // 4-1) 画像パスに gender を含むものを優先
-    $likeGender = $isFemale ? '%female%' : '%male%';
-    $q1 = $pdo->prepare("
-      SELECT id FROM equipments
-      WHERE slot = 'outfit' AND image_path LIKE ?
-      ORDER BY id ASC LIMIT 1
+  if ($desiredOutfitId) {
+    // 現在の outfit が何かを見る
+    $cur = $pdo->prepare("
+      SELECT equipment_id FROM user_avatar_equipments
+      WHERE user_id=? AND slot='outfit' LIMIT 1
     ");
-    $q1->execute([$likeGender]);
-    $equipId = $q1->fetchColumn();
+    $cur->execute([$user_id]);
+    $currentOutfitId = $cur->fetchColumn();
 
-    // 4-2) 無ければ base01 に近い名前（image_path 検索）
-    if (empty($equipId)) {
-      $q2 = $pdo->prepare("
-        SELECT id FROM equipments
-        WHERE slot = 'outfit' AND image_path REGEXP 'outfit.*base(01)?'
-        ORDER BY id ASC LIMIT 1
-      ");
-      $q2->execute();
-      $equipId = $q2->fetchColumn();
-    }
-
-    // 4-3) それでも無ければ slot='outfit' の最小ID
-    if (empty($equipId)) {
-      $q3 = $pdo->prepare("SELECT id FROM equipments WHERE slot='outfit' ORDER BY id ASC LIMIT 1");
-      $q3->execute();
-      $equipId = $q3->fetchColumn();
-    }
-
-    // 4-4) 見つかったら outfit を UPSERT
-    if (!empty($equipId)) {
-      // (user_id, slot) に UNIQUE がある前提（なければ追加推奨）
-      $up = $pdo->prepare("
+    if ($currentOutfitId === false) {
+      // 未装備: 挿入
+      $pdo->prepare("
         INSERT INTO user_avatar_equipments (user_id, slot, equipment_id)
         VALUES (?, 'outfit', ?)
-        ON DUPLICATE KEY UPDATE equipment_id = VALUES(equipment_id)
-      ");
-      $up->execute([$user_id, (int)$equipId]);
+      ")->execute([$user_id, $desiredOutfitId]);
+    } elseif ((int)$currentOutfitId !== (int)$desiredOutfitId) {
+      // 性別不一致: 更新
+      $pdo->prepare("
+        UPDATE user_avatar_equipments
+        SET equipment_id=?
+        WHERE user_id=? AND slot='outfit'
+      ")->execute([$desiredOutfitId, $user_id]);
     }
   }
 
   $pdo->commit();
   echo json_encode(['success'=>true]);
-
 } catch (Throwable $e) {
   if ($pdo->inTransaction()) $pdo->rollBack();
   http_response_code(500);
-  echo json_encode(['success'=>false, 'error'=>$e->getMessage()]);
+  echo json_encode(['success'=>false,'error'=>'SERVER_ERROR','detail'=>$e->getMessage()]);
 }

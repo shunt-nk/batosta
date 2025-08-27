@@ -347,13 +347,18 @@ switchTab('gender');
 
 // 保存
 document.getElementById('saveBtn').addEventListener('click', async ()=>{
-  const payload=[];
+// 送信部分だけ変更
+  const payload = {
+    gender: state.gender,           // ← 追加（'male' or 'female'）
+    parts: []
+  };
   ['body','hair','eyes','mouth'].forEach(s=>{
-    if(state[s]) payload.push({slot:s, part_id:state[s].id});
+    if (state[s]) payload.parts.push({ slot: s, part_id: state[s].id });
   });
-  const res = await fetch('save_avatar.php',{
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
+
+  const res = await fetch('save_avatar.php', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload)
   });
   const ok = await res.json();

@@ -82,8 +82,16 @@ if ($up > 0) {
 }
 
 // 保存
-$update = $pdo->prepare("UPDATE avatars_status SET level = ?, exp = ?, attack = ?, defense = ? WHERE user_id = ?");
+// task_result.php 末尾付近の更新
+$update = $pdo->prepare("
+  UPDATE avatars_status
+     SET level = ?, exp = ?, base_attack = ?, base_defense = ?
+   WHERE user_id = ?
+");
 $update->execute([$level, $new_exp, $status['attack'], $status['defense'], $user_id]);
+// ※上の $status['attack']/['defense'] は「累積上昇分（基礎）」として使われている想定。
+//   もし $status が既に “合計値” を指しているなら、ここは $base_attack/$base_defense に
+//   置換してください（＝合計から装備分を引いて基礎だけ更新）。
 
 
 // ランダムに3種選ぶ（重複なし）

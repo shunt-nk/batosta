@@ -3,42 +3,69 @@
 declare(strict_types=1);
 session_start();
 require 'includes/db.php';
-require 'includes/functions.php'; // fetchSelectedParts / renderAvatarLayers / getAvatarStatusWithEquip など
+require 'includes/functions.php'; // hasAvatarBody, fetchSelectedPartsBySlots, fetchEquipPaths, renderAvatarFull, getAvatarStatusWithEquip, ensureInitialOutfitEquipped
 
 if (!isset($_SESSION['user'])) { header("Location: index.php"); exit; }
-$user = $_SESSION['user'];
+$user    = $_SESSION['user'];
 $user_id = (int)$user['id'];
 
-/* --- カバー画像とプレゼンス（未実装ならデフォルト） --- */
-$stmt = $pdo->prepare("SELECT profile_cover_url, profile_icon_url, presence
-                       FROM users WHERE id = ? LIMIT 1");
+/* --- アバター作成済み判定（最優先で定義） --- */
+$needsAvatar = !hasAvatarBody($pdo, $user_id);
+
+/* --- outfit の初期装備は「作成済みのときだけ」保証 --- */
+if (!$needsAvatar && function_exists('ensureInitialOutfitEquipped')) {
+  ensureInitialOutfitEquipped($pdo, $user_id);
+}
+
+/* --- カバー画像／アイコン／プレゼンス --- */
+$stmt = $pdo->prepare("
+  SELECT profile_cover_url, profile_icon_url, presence
+  FROM users WHERE id = ? LIMIT 1
+");
 $stmt->execute([$user_id]);
 $u = $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
-$coverUrl = $u['profile_cover_url'] ?? '';         // 画像があれば上部カバーに敷く
-$iconUrl  = $u['profile_icon_url']  ?? '';         // 円形アイコンに使う（無ければSVG）
-$presence = $u['presence']          ?? 'offline';  // 'studying'|'battling'|'online'|'offline'
+$coverUrl = $u['profile_cover_url'] ?? '';
+$iconUrl  = $u['profile_icon_url']  ?? '';
+$presence = $u['presence']          ?? 'offline';
 
-/* --- 学習時間（例：合計/週/日平均。無ければ0） --- */
-$totalStmt = $pdo->prepare("SELECT 
-  COALESCE(SUM(duration_minutes),0) AS total,
-  COALESCE(SUM(CASE WHEN started_at >= DATE_SUB(CURDATE(), INTERVAL 7 DAY) THEN duration_minutes END),0) AS week
-  FROM study_logs WHERE user_id=?");
+/* --- 学習時間（簡易集計） --- */
+$totalStmt = $pdo->prepare("
+  SELECT 
+    COALESCE(SUM(duration_minutes),0) AS total,
+    COALESCE(SUM(CASE WHEN started_at >= DATE_SUB(CURDATE(), INTERVAL 7 DAY) THEN duration_minutes END),0) AS week
+  FROM study_logs WHERE user_id=?
+");
 $totalStmt->execute([$user_id]);
-$sum = $totalStmt->fetch(PDO::FETCH_ASSOC) ?: ['total'=>0,'week'=>0];
-$totalMin = (int)$sum['total'];
-$weekMin  = (int)$sum['week'];
-$avgPerDayMin = (int)round($totalMin / max(1, min(30, (int)$totalMin ? 30 : 1))); // 仮の平均（必要なら計算式を差し替え）
+$sum          = $totalStmt->fetch(PDO::FETCH_ASSOC) ?: ['total'=>0,'week'=>0];
+$totalMin     = (int)$sum['total'];
+$weekMin      = (int)$sum['week'];
+$avgPerDayMin = (int)round($totalMin / 30); // 仮の平均（日数管理が無ければ30日で割る）
 
-/* --- レベル/ステータス（未定義は安全値） --- */
-$stat = getAvatarStatusWithEquip($pdo, $user_id);
+/* --- ステータス --- */
+$stat  = getAvatarStatusWithEquip($pdo, $user_id);
 $level = (int)($stat['level'] ?? 1);
-$hp = $stat['hp'] ?? (100 + $level * 10);  // HP/SP は将来テーブル追加予定。今は見た目用の暫定値。
-$sp = $stat['sp'] ?? (20 + (int)floor($level / 2));
+$hp    = $stat['hp'] ?? (100 + $level * 10);
+$sp    = $stat['sp'] ?? (20 + (int)floor($level / 2));
 
-/* --- アバター（4スロット） --- */
-$parts = fetchSelectedParts($pdo, $user_id); // ['body'=>..., 'hair'=>..., 'eyes'=>..., 'mouth'=>...]
+/* --- アバター表示用（作成済みなら hand_* 含めて取得） --- */
+/* --- アバター表示用（作成済みなら hand_* 含めて取得） --- */
+$needsAvatar = !hasAvatarBody($pdo, $user_id);
 
-/* --- 装備（5枠分。無ければプレースホルダで空表示） --- */
+if ($needsAvatar) {
+  $parts = []; $equipPaths = [];
+} else {
+  $parts      = fetchSelectedPartsBySlots($pdo, $user_id, ['body','hair','eyes','mouth','hand_base','hand_weapon']);
+  $equipPaths = fetchEquipPaths($pdo, $user_id);
+
+  // hand を確定（武器があれば hand_weapon、無ければ hand_base）
+  unset($parts['hand']);
+  if (!empty($equipPaths['weapon']) && !empty($parts['hand_weapon'])) {
+    $parts['hand'] = $parts['hand_weapon'];
+  } elseif (!empty($parts['hand_base'])) {
+    $parts['hand'] = $parts['hand_base'];
+  }
+}
+/* --- 装備一覧（右側の5枠表示用） --- */
 $stmt = $pdo->prepare("
   SELECT uae.slot AS slot, e.image_path AS image_path
   FROM user_avatar_equipments uae
@@ -51,9 +78,9 @@ foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $r) {
   $equipments[$r['slot']] = $r['image_path'];
 }
 
-// 表示したい5枠（スロット名はあなたのDBに合わせて調整可）
-$equipSlots = ['head','weapon','shield','armor','boots']; // 例：5枠
-$current_page = 'profile';
+/* 表示したい5枠：DBに合わせて outfit を使用（旧 armor は使わない） */
+$equipSlots    = ['head','weapon','shield','outfit','boots'];
+$current_page  = 'profile';
 ?>
 <!doctype html>
 <html lang="ja">
@@ -69,19 +96,18 @@ $current_page = 'profile';
   <?php include 'includes/navbar.php'; ?>
 
   <main class="profile">
-    <!-- カバー（ユーザー画像 or グラデ） -->
+    <!-- カバー -->
     <div class="cover" style="<?= $coverUrl ? "background-image:url('".htmlspecialchars($coverUrl,ENT_QUOTES)."');" : '' ?>">
       <div class="cover-overlay"></div>
     </div>
 
     <section class="profile-grid">
-      <!-- 左の上段：丸アイコン＋ユーザー名 -->
+      <!-- 左：プロフィールカード -->
       <div class="identity-card">
         <div class="avatar-circle">
           <?php if ($iconUrl): ?>
             <img src="<?= htmlspecialchars($iconUrl) ?>" alt="ユーザーアイコン">
           <?php else: ?>
-            <!-- 代替の簡易アイコン（SVG） -->
             <svg viewBox="0 0 100 100" aria-hidden="true">
               <circle cx="50" cy="34" r="18" fill="#ffffff"/>
               <rect x="20" y="60" width="60" height="28" rx="14" fill="#ffffff"/>
@@ -91,7 +117,6 @@ $current_page = 'profile';
         </div>
         <div class="identity-name"><?= htmlspecialchars($user['username'] ?? 'ユーザー名') ?></div>
 
-        <!-- 学習記録の小カード -->
         <div class="study-card">
           <div class="row"><span>勉強の記録</span></div>
           <div class="row"><span>1日の平均</span><b><?= floor($avgPerDayMin/60) ?>時間<?= $avgPerDayMin%60 ?>分</b></div>
@@ -103,9 +128,17 @@ $current_page = 'profile';
       </div>
 
       <!-- 中央：アバター -->
-      <div class="avatar-wrap">
-        <?= renderAvatarLayers($parts) ?>
-      </div>
+      <section class="avatar_section">
+        <h2>アバター</h2>
+        <?php if ($needsAvatar): ?>
+          <div style="background:#fff7e6;border:2px dashed #e6d4ae;color:#6b4d22;padding:12px 14px;border-radius:12px;margin:16px 0;">
+            まずはアバターを作成しましょう →
+            <a href="avatar_create.php?first=1" style="font-weight:700;color:#2e7d32;text-decoration:underline;">アバター作成へ</a>
+          </div>
+        <?php else: ?>
+          <?= renderAvatarFull($parts, $equipPaths) ?>
+        <?php endif; ?>
+      </section>
 
       <!-- 右：装備 + ステータス -->
       <div class="stats-card">
@@ -119,8 +152,8 @@ $current_page = 'profile';
         <div class="gear-grid">
           <?php foreach ($equipSlots as $slot): ?>
             <div class="gear-cell">
-              <?php if (!empty($equip[$slot])): ?>
-                <img src="<?= htmlspecialchars($equip[$slot]) ?>" alt="<?= htmlspecialchars($slot) ?>">
+              <?php if (!empty($equipments[$slot])): ?>
+                <img src="<?= htmlspecialchars($equipments[$slot]) ?>" alt="<?= htmlspecialchars($slot) ?>">
               <?php endif; ?>
             </div>
           <?php endforeach; ?>
@@ -132,13 +165,18 @@ $current_page = 'profile';
         <h3>取得した称号</h3>
         <div class="title-grid">
           <?php
-          $ts = $pdo->prepare("SELECT t.name FROM user_titles ut JOIN titles t ON ut.title_id=t.id WHERE ut.user_id=? ORDER BY ut.updated_at DESC LIMIT 8");
+          $ts = $pdo->prepare("
+            SELECT t.name
+            FROM user_titles ut
+            JOIN titles t ON ut.title_id=t.id
+            WHERE ut.user_id=?
+            ORDER BY ut.updated_at DESC
+            LIMIT 8
+          ");
           $ts->execute([$user_id]);
           $titles = $ts->fetchAll(PDO::FETCH_COLUMN);
           if ($titles) {
-            foreach ($titles as $name) {
-              echo '<div class="title-chip">'.htmlspecialchars($name).'</div>';
-            }
+            foreach ($titles as $name) echo '<div class="title-chip">'.htmlspecialchars($name).'</div>';
           } else {
             echo '<div class="title-chip ghost">称号はまだありません</div>';
           }
