@@ -1,0 +1,143 @@
+.tabs {
+  display: flex;
+  gap: 8px;
+  padding: 16px 24px 0;
+}
+.tab {
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: none;
+  background: #2f3c61;
+  color: #cfe0ff;
+  border: 2px solid transparent;
+}
+.tab.active {
+  background: #db9963;
+  color: #fff;
+  border-color: #c87f49;
+}
+.badge {
+  margin-left: 8px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #fff;
+  color: #2f3c61;
+  font-size: 12px;
+  font-weight: 900;
+}
+.friends-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 32px;
+  padding: 24px;
+}
+.friend-card {
+  background: #3e4f7b;
+  border-radius: 18px;
+  padding: 24px;
+  color: #fff;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+.friend-hd {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.user-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: #2f3c61;
+  position: relative;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+.user-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.presence-dot {
+  position: absolute;
+  right: -1px;
+  bottom: -1px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 3px solid #3e4f7b;
+}
+.user-name {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+.stats {
+  margin: 10px 0 16px;
+  display: grid;
+  row-gap: 6px;
+  font-weight: 600;
+}
+.stat-row {
+  display: flex;
+  gap: 10px;
+}
+.stat-row dt {
+  width: 70px;
+  opacity: 0.85;
+}
+.stat-row dd {
+  margin: 0;
+}
+.avatar-wrap {
+  display: grid;
+  place-items: center;
+  height: 220px;
+}
+.avatar-container {
+  position: relative;
+  width: 160px;
+  height: 160px;
+}
+.avatar-container img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.cta {
+  margin-top: 16px;
+  display: flex;
+  gap: 8px;
+}
+.btn {
+  border: none;
+  border-radius: 14px;
+  padding: 12px 18px;
+  font-weight: 700;
+  cursor: pointer;
+  background: #db9963;
+  color: #fff;
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.15);
+}
+.btn.secondary {
+  background: #c9cfdf;
+  color: #243252;
+}
+.btn.danger {
+  background: #e15b64;
+}
+.btn[disabled] {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.empty {
+  color: #cfe0ff;
+  opacity: 0.9;
+  padding: 24px 24px 0;
+}
