@@ -1,0 +1,398 @@
+/* styles/battle.css — mockup-matching MVP */
+:root {
+  --bg: #5a6f99; /* 画面ベース */
+  --panel: #3a4a78; /* パネル背景 */
+  --card: #ffffff;
+  --accent: #db9963; /* オレンジ */
+  --muted: #dbe1f0;
+  --hp: #55d68a; /* HPバー */
+  --sp: #e7d65f; /* SPバー */
+  --fg-on: #db9963; /* FG点灯 */
+  --fg-off: #c9d2e2;
+  --text: #fff;
+  --deep: #263455;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, -apple-system, "Hiragino Kaku Gothic ProN",
+    "Noto Sans JP", Segoe UI, Roboto, sans-serif;
+}
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  padding-bottom: calc(240px + var(--safe-bottom)); /* ← 重要：下に余白を作る */
+}
+.top {
+  display: grid;
+  grid-template-columns: 1fr 360px 1fr;
+  gap: 24px;
+  align-items: start;
+}
+.side {
+  display: flex;
+  flex-direction: column;
+}
+.name {
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+}
+.sub {
+  font-size: 14px;
+  opacity: 0.9;
+  margin-top: 4px;
+}
+.bars {
+  margin-top: 12px;
+}
+.bar {
+  height: 12px;
+  border-radius: 999px;
+  background: #223055;
+  overflow: hidden;
+  margin: 6px 0;
+  position: relative;
+}
+.bar > span {
+  display: block;
+  height: 100%;
+}
+.bar.hp > span {
+  background: var(--hp);
+}
+.bar.sp > span {
+  background: var(--sp);
+}
+.fg {
+  display: flex;
+  gap: 8px;
+  margin-top: 6px;
+}
+.fg .dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--fg-off);
+  border: 1px solid #8fa2c9;
+}
+.fg .dot.on {
+  background: var(--fg-on);
+  border-color: var(--fg-on);
+}
+
+.avatar {
+  margin-top: 22px;
+}
+.avatar .standin {
+  width: 240px;
+  height: 280px;
+  border-radius: 16px;
+  background: #6f7fa3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px dashed #90a0c6;
+  color: #fff;
+  opacity: 0.85;
+}
+.avatar-container {
+  height: 500px;
+}
+.avatar-layer {
+  top: -20%;
+}
+.vs {
+  font-size: 64px;
+  font-weight: 900;
+  text-align: center;
+  opacity: 0.9;
+  letter-spacing: 3px;
+  margin: 150px 0 0;
+}
+
+.centerBox {
+  background: #fff;
+  color: #4b5563;
+  border-radius: 16px;
+  padding: 18px;
+  text-align: center;
+  width: 100%;
+  max-width: 360px;
+  margin: 0 auto;
+}
+.centerBox h2 {
+  margin: 0 0 8px 0;
+  font-size: 24px;
+  color: #111827;
+}
+.centerBox .line {
+  margin: 6px 0;
+  color: #ed8936;
+  font-weight: 800;
+}
+.centerBox .link {
+  color: #6b7280;
+  font-size: 12px;
+  text-decoration: underline;
+  cursor: pointer;
+  margin-top: 6px;
+  display: inline-block;
+}
+
+.actionPanel {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: calc(24px + var(--safe-bottom));
+  width: min(1120px, calc(100vw - 32px)); /* モックの横長感 */
+  background: var(--panel);
+  border-radius: 16px;
+  padding: 15px;
+  z-index: 30;
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.25);
+}
+.tabs {
+  display: flex;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+.tab {
+  padding: 10px 16px;
+  border-radius: 999px;
+  background: #6b7aa6;
+  color: #fff;
+  font-weight: 800;
+  border: 2px solid transparent;
+  cursor: pointer;
+}
+.tab.active {
+  background: var(--accent);
+  color: #fff;
+}
+.skillRow {
+  display: flex;
+  gap: 14px;
+  overflow-x: auto;
+  padding-bottom: 6px;
+  scrollbar-width: thin;
+}
+.skill {
+  min-width: 160px;
+  background: #fff;
+  border-radius: 16px;
+  color: #374151;
+  padding: 12px 12px 10px;
+  border: 4px solid transparent;
+  cursor: pointer;
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.1);
+}
+.skill .pill {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 900;
+  color: #fff;
+  background: #94a3b8;
+  border-radius: 999px;
+  padding: 2px 8px;
+  margin-bottom: 6px;
+}
+.skill .title {
+  font-size: 16px;
+  font-weight: 900;
+  margin-bottom: 4px;
+  color: #111827;
+}
+.skill .desc {
+  font-size: 12px;
+  color: #6b7280;
+  min-height: 32px;
+}
+.skill.selected {
+  background: var(--accent);
+  color: #fff;
+  border-color: #f9cfac;
+}
+.skill.selected .pill {
+  background: rgba(255, 255, 255, 0.25);
+}
+.skill.selected .desc {
+  color: #fff;
+}
+.footer_flex {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.footerRow {
+  display: flex;
+  justify-content: flex-end; /* ← 右寄せに */
+  align-items: center;
+  gap: 12px; /* ← ボタンとチェックの距離を近く */
+}
+.checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+.btn {
+  padding: 12px 20px;
+  border: none;
+  border-radius: 14px;
+  font-weight: 900;
+  cursor: pointer;
+}
+.btn.primary {
+  background: var(--accent);
+  color: #fff;
+}
+.btn.disabled {
+  background: #b6bed2;
+  color: #fff;
+  cursor: not-allowed;
+  opacity: 0.8;
+}
+.stateText {
+  font-size: 18px;
+  font-weight: 900;
+  margin-top: 10px;
+}
+
+.badgeWin {
+  position: absolute;
+  top: -8px;
+  right: 10px;
+  background: #fff;
+  color: #f59e0b;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-weight: 900;
+}
+.badgeLose {
+  position: absolute;
+  top: -8px;
+  right: 10px;
+  background: #fff;
+  color: #94a3b8;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-weight: 900;
+}
+.resultOverlay {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 60px;
+  text-align: center;
+  font-size: 72px;
+  font-weight: 900;
+  color: rgba(255, 255, 200, 0.9);
+  text-shadow: 0 4px 18px rgba(0, 0, 0, 0.2);
+  display: none;
+  pointer-events: none;
+}
+.resultBtns {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 160px;
+  display: none;
+  justify-content: center;
+}
+.resultBtns .btn {
+  font-size: 24px;
+  padding: 16px 28px;
+}
+
+.toast {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 18px;
+  background: #111827;
+  color: #fff;
+  padding: 10px 14px;
+  border-radius: 10px;
+  display: none;
+  z-index: 40;
+}
+
+/* 詳細ログモーダル */
+.modal {
+  position: fixed;
+  inset: 0;
+  display: none;
+  z-index: 50;
+}
+.modal .back {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+}
+.modal .panel {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 520px;
+  max-width: 92vw;
+  background: #fff;
+  border-radius: 16px;
+  color: #111827;
+  padding: 14px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
+  max-height: 75vh;
+  display: flex;
+  flex-direction: column;
+}
+.modal .panel .head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.modal .panel .log {
+  margin-top: 8px;
+  overflow: auto;
+  flex: 1;
+  border-top: 1px solid #eef2f7;
+  padding-top: 6px;
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.modal .panel .line {
+  padding: 4px 0;
+  border-bottom: 1px dashed #eef1f7;
+}
+/* 勝敗ラベル（Lv横） */
+.resTag {
+  margin-left: 8px;
+  font-weight: 900;
+}
+.resTag.win {
+  color: var(--accent);
+} /* オレンジ：勝ち */
+.resTag.lose {
+  color: #94a3b8;
+} /* グレー：負け */
+
+/* 中央の「ホームに戻る」ボタン */
+.resultCenter {
+  text-align: center;
+  margin-top: 30px;
+}
+.resultCenter a {
+  text-decoration: none;
+}
+.resultCenter .btn.big {
+  font-size: 28px;
+  padding: 16px 32px;
+  border-radius: 16px;
+}

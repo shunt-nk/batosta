@@ -26,7 +26,7 @@ main {
 .avatar-container {
   position: relative;
   width: 360px; /* デザインカンプに近い見た目 */
-  aspect-ratio: 2 / 3; /* 縦長表示。不要なら height 固定でもOK */
+  height: 540px;
   margin: 0 auto;
 }
 .avatar-layer {
@@ -60,4 +60,14 @@ main {
 }
 .slot-hand {
   z-index: 5;
+}
+.progress-bar {
+  background: #eee;
+  height: 20px;
+  border-radius: 10px;
+  overflow: hidden;
+}
+.progress {
+  height: 100%;
+  background: linear-gradient(to right, orange, gold);
 }

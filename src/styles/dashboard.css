@@ -1,133 +1,148 @@
-/* ---- 共通セクション（元の色・角丸を維持） ---- */
-section {
-  background: #484e88;
-  padding: 20px 15px;
-  border-radius: 20px;
-  color: white;
-}
-h2 {
-  margin-top: 10px;
-  font-size: 1.3rem;
-}
-h3 {
-  margin-top: 10px;
-  font-size: 1.2rem;
+/* ホーム画面（モック準拠／既存progress-barは既存CSSに委譲） */
+:root {
+  --bg: #5a6f99;
+  --panel: #4c5e8f;
+  --card: #4c5e8f;
+  --card-soft: #506398;
+  --text: #fff;
+  --muted: #cfd7ec;
+  --accent: #db9963;
 }
 
-/* ---- 上段：レベル表示 + 進捗バー（色は既存のまま） ---- */
-.progress-bar {
-  background: #eee;
-  height: 20px;
-  border-radius: 10px;
-  overflow: hidden;
-}
-.progress {
-  height: 100%;
-  background: linear-gradient(to right, orange, gold);
-}
-
-/* ---- レイアウト（中央＝アバター、右＝パネル群） ---- */
-/* コンテンツ全体を2カラムに：左（1fr）/ 右（固定幅） */
-.content {
+.dash {
   display: grid;
-  grid-template-columns: 1fr 360px;
-  gap: 18px;
+  grid-template-columns: 1fr 420px;
+  gap: 28px;
+  padding: 24px 18px 40px 18px;
+  color: var(--text);
 }
 
-/* 右側のカード群（今日の履歴・素材） */
-.dashboard-columns {
-  grid-column: 2 / 3;
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 1rem;
-  align-items: start;
-  margin-top: 0;
+/* 左レーン */
+.left .lvl {
+  margin-bottom: 18px;
 }
-
-/* 右カードの幅は親グリッドに合わせる */
-.hw,
-.mt {
-  width: 100%;
-  max-width: none;
-  height: auto;
-}
-
-/* 左側（レベル→アバター） */
-.content > section:first-of-type {
-  grid-column: 1 / 2;
-} /* レベル */
-.avatar_section {
-  grid-column: 1 / 2;
-  height: auto;
+.lvl-row {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
+  align-items: baseline;
+  gap: 14px;
+}
+.lvl-title {
+  font-size: 40px;
+  font-weight: 900;
+}
+.lvl-sub {
+  font-size: 20px;
+  font-weight: 800;
+  background: #fff3;
+  border-radius: 999px;
+  padding: 6px 12px;
 }
 
-/* ---- アバター（重ね順の修正含む） ---- */
-/* .avatar-container {
-  position: relative;
-  width: 360px; 
-  aspect-ratio: 2 / 3; 
-  margin: 0 auto;
+/* ★progress-bar の見た目は既存 style.css に任せる。ここでは余白のみ */
+.lvl-progress {
+  margin: 12px 0 6px 0;
 }
-.avatar-layer {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  z-index: 0;
-} */
-.callout {
-  background: #fff7e6;
-  border: 2px dashed #e6d4ae;
-  color: #6b4d22;
-  padding: 12px 14px;
-  border-radius: 12px;
-  margin-bottom: 16px;
-}
-.callout a {
+
+.lvl-note {
+  font-size: 14px;
+  color: var(--muted);
   font-weight: 700;
-  color: #2e7d32;
+}
+
+.avatar-box {
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 520px;
+  background: transparent;
+}
+.avatar-standin {
+  width: 280px;
+  height: 320px;
+  border-radius: 16px;
+  background: #6f7fa3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px dashed #90a0c6;
+  color: #fff;
+  opacity: 0.9;
+  text-align: center;
+  padding: 8px;
+}
+.btn.linklike {
+  color: #fff;
   text-decoration: underline;
 }
 
-/* レイヤー順：最下層→最上層（色は関係ないので数値だけ指定）
-.slot-body {
-  z-index: 1;
+/* 右レーン */
+.right .card {
+  background: var(--card);
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.15);
 }
-.slot-hair {
-  z-index: 2;
+.card-h {
+  font-weight: 900;
+  font-size: 18px;
+  margin-bottom: 12px;
 }
-.slot-eyes {
-  z-index: 3;
-}
-.slot-mouth {
-  z-index: 4;
-}
-/* 服 */
-/* .slot-outfit {
-  z-index: 5;
-}
-/* 武器と手（手は最前＝握って見える） */
-/* .slot-weapon {
-  z-index: 8;
-}
-.slot-hand {
-  z-index: 9;
-} */
 
-/* ---- レスポンシブ（狭い幅では1カラム） ---- */
-@media (max-width: 900px) {
-  .content {
+.card.hw .hw-body {
+  background: var(--card-soft);
+  border-radius: 12px;
+  padding: 14px;
+  color: #fff;
+}
+.hw-list {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.right-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 18px;
+  margin-top: 18px;
+}
+
+.card.simple .status .row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+}
+.card.simple .status .row:last-child {
+  border-bottom: none;
+}
+
+.card.mats .mat-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.card.mats .mat-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.2);
+}
+.card.mats .mat-list li:last-child {
+  border-bottom: none;
+}
+.card.mats .mat-list .name {
+  font-weight: 800;
+}
+.card.mats .mat-list .qty {
+  font-weight: 900;
+}
+
+/* レスポンシブ */
+@media (max-width: 1000px) {
+  .dash {
     grid-template-columns: 1fr;
-  }
-  .dashboard-columns {
-    grid-column: 1 / -1;
-  }
-  .avatar-container {
-    width: 300px;
   }
 }
