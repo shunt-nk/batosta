@@ -87,7 +87,6 @@ $current_page = 'friend';
 <div class="container">
 <?php include 'includes/navbar.php'; ?>
 <main class="content">
-  <h2 style="color:#fff; padding:16px 24px 0;">フレンド</h2>
 
   <!-- タブ -->
   <nav class="tabs" role="tablist" aria-label="friend tabs">
