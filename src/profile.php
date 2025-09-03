@@ -44,7 +44,7 @@ $totalStmt->execute([$view_id]);
 $sum          = $totalStmt->fetch(PDO::FETCH_ASSOC) ?: ['total'=>0,'week'=>0];
 $totalMin     = (int)$sum['total'];
 $weekMin      = (int)$sum['week'];
-$avgPerDayMin = (int)round($totalMin / 30); // 日数管理が無ければ30日で割る（従来のまま）
+$avgPerDayMin = (int)round($totalMin / 30);
 
 /* --- ステータス（対象ユーザー） --- */
 $stat  = getAvatarStatusWithEquip($pdo, $view_id);
@@ -58,8 +58,6 @@ if ($needsAvatar) {
 } else {
   $parts      = fetchSelectedPartsBySlots($pdo, $view_id, ['body','hair','eyes','mouth','hand_base','hand_weapon']);
   $equipPaths = fetchEquipPaths($pdo, $view_id);
-
-  // hand を確定（武器があれば hand_weapon、無ければ hand_base）
   unset($parts['hand']);
   if (!empty($equipPaths['weapon']) && !empty($parts['hand_weapon'])) {
     $parts['hand'] = $parts['hand_weapon'];
@@ -68,7 +66,7 @@ if ($needsAvatar) {
   }
 }
 
-/* --- 装備一覧（右側の5枠表示用：対象ユーザー） --- */
+/* --- 装備画像（右側の5枠表示用） --- */
 $stmt = $pdo->prepare("
   SELECT uae.slot AS slot, e.image_path AS image_path
   FROM user_avatar_equipments uae
@@ -81,24 +79,21 @@ foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $r) {
   $equipments[$r['slot']] = $r['image_path'];
 }
 
-/* 表示したい5枠：DBに合わせて outfit を使用（旧 armor は使わない） */
-$equipSlots    = ['head','weapon','shield','outfit','boots'];
-$current_page  = 'profile';
+/* 5枠を 2+3 に並べる：上段(weapon, shield)／下段(head, outfit, boots) */
+$gearLayout   = ['weapon', 'shield', null, 'head', 'outfit', 'boots'];
+$current_page = 'profile';
 
-/* ------- フレンド状態（他人ページのときだけ使う） ------- */
+/* ------- フレンド状態（他人ページのときだけ） ------- */
 $friendNow = false; $outStatus = null; $inPending = false;
 if (!$isSelf) {
-  // 自分⇆相手 が friends にあるか
   $stf = $pdo->prepare("SELECT 1 FROM friends WHERE user_id=? AND friend_id=?");
   $stf->execute([$auth_id, $view_id]);
   $friendNow = (bool)$stf->fetchColumn();
 
-  // 自分→相手 の申請状態
   $reqOut = $pdo->prepare("SELECT status FROM friend_requests WHERE requester_id=? AND addressee_id=?");
   $reqOut->execute([$auth_id, $view_id]);
   $outStatus = $reqOut->fetchColumn() ?: null;
 
-  // 相手→自分 の pending 有無
   $reqIn = $pdo->prepare("SELECT status FROM friend_requests WHERE requester_id=? AND addressee_id=?");
   $reqIn->execute([$view_id, $auth_id]);
   $inPending = ($reqIn->fetchColumn() === 'pending');
@@ -112,15 +107,6 @@ if (!$isSelf) {
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet" href="styles/style.css">
 <link rel="stylesheet" href="styles/profile.css">
-<style>
-/* 既存デザインを崩さない最小の補助 */
-.profile .cta-wrap{display:flex; gap:10px; margin-top:12px; flex-wrap:wrap;}
-.profile .btn{border:none; border-radius:14px; padding:12px 18px; font-weight:700; cursor:pointer}
-.profile .btn.primary{background:#DB9963; color:#fff;}
-.profile .btn.secondary{background:#C9CFDF; color:#243252;}
-.profile .btn.danger{background:#E15B64; color:#fff;}
-.profile .btn[disabled]{opacity:.6; cursor:not-allowed;}
-</style>
 </head>
 <body>
 <div class="container">
@@ -149,24 +135,16 @@ if (!$isSelf) {
 
         <div class="identity-name"><?= htmlspecialchars($username) ?></div>
 
+        <div class="study-card">
+          <div class="row"><span>勉強の記録</span></div>
+          <div class="row"><span>1日の平均</span><b><?= floor($avgPerDayMin/60) ?>時間<?= $avgPerDayMin%60 ?>分</b></div>
+          <div class="row"><span>週間</span><b><?= floor($weekMin/60) ?>時間<?= $weekMin%60 ?>分</b></div>
+          <div class="row"><span>累計</span><b><?= floor($totalMin/60) ?>時間<?= $totalMin%60 ?>分</b></div>
+        </div>
+
         <?php if ($isSelf): ?>
-          <!-- 自分のときは従来どおり設定ボタン -->
-          <div class="study-card">
-            <div class="row"><span>勉強の記録</span></div>
-            <div class="row"><span>1日の平均</span><b><?= floor($avgPerDayMin/60) ?>時間<?= $avgPerDayMin%60 ?>分</b></div>
-            <div class="row"><span>週間</span><b><?= floor($weekMin/60) ?>時間<?= $weekMin%60 ?>分</b></div>
-            <div class="row"><span>累計</span><b><?= floor($totalMin/60) ?>時間<?= $totalMin%60 ?>分</b></div>
-          </div>
           <a class="settings-btn" href="settings.php">⚙ 設定</a>
         <?php else: ?>
-          <!-- 他人プロフィール：学習記録 + フレンドCTA -->
-          <div class="study-card">
-            <div class="row"><span>勉強の記録</span></div>
-            <div class="row"><span>1日の平均</span><b><?= floor($avgPerDayMin/60) ?>時間<?= $avgPerDayMin%60 ?>分</b></div>
-            <div class="row"><span>週間</span><b><?= floor($weekMin/60) ?>時間<?= $weekMin%60 ?>分</b></div>
-            <div class="row"><span>累計</span><b><?= floor($totalMin/60) ?>時間<?= $totalMin%60 ?>分</b></div>
-          </div>
-
           <div class="cta-wrap">
             <?php if ($friendNow): ?>
               <form method="post" action="friend_action.php">
@@ -198,23 +176,24 @@ if (!$isSelf) {
         <?php endif; ?>
       </div>
 
-      <!-- 中央：アバター -->
-      <section class="avatar_section">
-        <h2>アバター</h2>
-        <?php if ($needsAvatar): ?>
-          <?php if ($isSelf): ?>
-            <div style="background:#fff7e6;border:2px dashed #e6d4ae;color:#6b4d22;padding:12px 14px;border-radius:12px;margin:16px 0;">
-              まずはアバターを作成しましょう →
-              <a href="avatar_create.php?first=1" style="font-weight:700;color:#2e7d32;text-decoration:underline;">アバター作成へ</a>
-            </div>
+      <!-- 中央：アバター（見出しなし、中央大きく） -->
+      <section class="avatar-wrap">
+        <div class="avatar-container">
+          <?php if ($needsAvatar): ?>
+            <?php if ($isSelf): ?>
+              <div style="background:#fff7e6;border:2px dashed #e6d4ae;color:#6b4d22;padding:12px 14px;border-radius:12px;margin:16px 0;">
+                まずはアバターを作成しましょう →
+                <a href="avatar_create.php?first=1" style="font-weight:700;color:#2e7d32;text-decoration:underline;">アバター作成へ</a>
+              </div>
+            <?php else: ?>
+              <div style="background:#eef3ff;border:2px dashed #c9d4ff;color:#394a7a;padding:12px 14px;border-radius:12px;margin:16px 0;">
+                このユーザーはまだアバターを作成していません。
+              </div>
+            <?php endif; ?>
           <?php else: ?>
-            <div style="background:#eef3ff;border:2px dashed #c9d4ff;color:#394a7a;padding:12px 14px;border-radius:12px;margin:16px 0;">
-              このユーザーはまだアバターを作成していません。
-            </div>
+            <?= renderAvatarFull($parts, $equipPaths) ?>
           <?php endif; ?>
-        <?php else: ?>
-          <?= renderAvatarFull($parts, $equipPaths) ?>
-        <?php endif; ?>
+        </div>
       </section>
 
       <!-- 右：装備 + ステータス -->
@@ -226,13 +205,18 @@ if (!$isSelf) {
           <div class="k">こうげき</div><div class="v"><?= (int)($stat['attack'] ?? 0) ?></div>
           <div class="k">ぼうぎょ</div><div class="v"><?= (int)($stat['defense'] ?? 0) ?></div>
         </div>
+
         <div class="gear-grid">
-          <?php foreach ($equipSlots as $slot): ?>
-            <div class="gear-cell">
-              <?php if (!empty($equipments[$slot])): ?>
-                <img src="<?= htmlspecialchars($equipments[$slot]) ?>" alt="<?= htmlspecialchars($slot) ?>">
-              <?php endif; ?>
-            </div>
+          <?php foreach ($gearLayout as $slot): ?>
+            <?php if ($slot === null): ?>
+              <div class="gear-cell"></div>
+            <?php else: ?>
+              <div class="gear-cell">
+                <?php if (!empty($equipments[$slot])): ?>
+                  <img src="<?= htmlspecialchars($equipments[$slot]) ?>" alt="<?= htmlspecialchars($slot) ?>">
+                <?php endif; ?>
+              </div>
+            <?php endif; ?>
           <?php endforeach; ?>
         </div>
       </div>

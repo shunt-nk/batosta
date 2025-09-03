@@ -331,3 +331,154 @@ function loadAvatarStacks(PDO $pdo, int $user_id): array {
 
   return [$parts, $equip];
 }
+
+/* 既存の equip_img_src() をそのまま活かします（無ければ簡易版） */
+if (!function_exists('equip_img_src')) {
+  function equip_img_src(?string $p): string {
+    if (!$p) return '';
+    $p = trim($p);
+    if (preg_match('~^https?://~i', $p)) return $p;
+    return ltrim($p, '/');
+  }
+}
+
+/** スロットの正規化 */
+if (!function_exists('normalize_slot')) {
+  function normalize_slot(string $slot, array $allowed): string {
+    return in_array($slot, $allowed, true) ? $slot : '';
+  }
+}
+
+/** 装備中（ユーザー）の取得：id と code（key_name）を返す */
+if (!function_exists('fetchEquipped')) {
+  function fetchEquipped(PDO $pdo, int $user_id): array {
+    $sql = "
+      SELECT ue.slot, ue.equip_id, ec.key_name AS code
+      FROM user_equips ue
+      JOIN equip_catalog ec ON ec.id = ue.equip_id
+      WHERE ue.user_id = ?
+    ";
+    $st = $pdo->prepare($sql);
+    $st->execute([$user_id]);
+    $codes = []; $ids = [];
+    foreach ($st->fetchAll(PDO::FETCH_ASSOC) as $r) {
+      $slot = (string)$r['slot'];
+      $codes[$slot] = (string)$r['code'];
+      $ids[$slot]   = (int)$r['equip_id'];
+    }
+    return ['codes'=>$codes, 'ids'=>$ids];
+  }
+}
+
+/** スロットごとのカタログ（UIパス用の列も取得） */
+if (!function_exists('fetchCatalogBySlot')) {
+  function fetchCatalogBySlot(PDO $pdo, array $slots): array {
+    if (empty($slots)) return [];
+    $in = implode(',', array_fill(0, count($slots), '?'));
+    $sql = "
+      SELECT id, slot, key_name, name, icon_path, avatar_path
+      FROM equip_catalog
+      WHERE slot IN ($in)
+      ORDER BY slot, id
+    ";
+    $st = $pdo->prepare($sql);
+    $st->execute($slots);
+
+    $out = array_fill_keys($slots, []);
+    foreach ($st->fetchAll(PDO::FETCH_ASSOC) as $r) {
+      $slot = (string)$r['slot'];
+      $out[$slot][] = [
+        'id'          => (int)$r['id'],
+        'slot'        => $slot,
+        'key_name'    => (string)$r['key_name'],
+        'name'        => (string)($r['name'] ?? $r['key_name']),
+        'icon_path'   => (string)($r['icon_path'] ?? ''),   // ファイル名（例: sword_iron.png）
+        'avatar_path' => (string)($r['avatar_path'] ?? ''), // ファイル名（例: sword_iron.png）
+      ];
+    }
+    return $out;
+  }
+}
+
+/** スロットごとの未装備アイコン（ファイル名） */
+if (!function_exists('fetchSlotEmptyIcons')) {
+  function fetchSlotEmptyIcons(PDO $pdo, array $slots): array {
+    if (empty($slots)) return [];
+    $in = implode(',', array_fill(0, count($slots), '?'));
+    $sql = "SELECT slot, empty_icon_path FROM equip_slot_master WHERE slot IN ($in)";
+    $st = $pdo->prepare($sql);
+    $st->execute($slots);
+    $out = [];
+    foreach ($st->fetchAll(PDO::FETCH_ASSOC) as $r) {
+      $out[(string)$r['slot']] = (string)$r['empty_icon_path']; // 例: empty.png
+    }
+    // 足りないスロットはデフォルトを補完
+    foreach ($slots as $s) {
+      if (!isset($out[$s])) $out[$s] = 'empty.png';
+    }
+    return $out;
+  }
+}
+
+/**
+ * UI 用の画像パスを生成（プロジェクト仕様に合わせた “やり直し版”）
+ *
+ * 種別:
+ *  - 'list_icon'       : 一覧アイコン → assets/icons/{slot}/{icon_path} (装備あり)
+ *  - 'preview_equip'   : プレビュー（装備中）→ assets/avatars/{slot}/{avatar_path}
+ *  - 'preview_empty'   : プレビュー（未装備）→ assets/icons/{slot}/{empty_icon_path}
+ *
+ * $row は fetchCatalogBySlot() の 1 行（装備アイテム）。未装備時は null で呼び出し。
+ */
+if (!function_exists('equip_ui_path')) {
+  function equip_ui_path(string $type, string $slot, ?array $row, array $slotEmptyMap): string {
+    $slot = trim($slot);
+    switch ($type) {
+      case 'list_icon':
+        if ($row && !empty($row['icon_path'])) {
+          return equip_img_src("assets/icons/{$slot}/{$row['icon_path']}");
+        }
+        break;
+
+      case 'preview_equip':
+        if ($row && !empty($row['avatar_path'])) {
+          return equip_img_src("assets/avatars/{$slot}/{$row['avatar_path']}");
+        }
+        break;
+
+      case 'preview_empty':
+        $empty = $slotEmptyMap[$slot] ?? 'empty.png';
+        return equip_img_src("assets/icons/{$slot}/{$empty}");
+    }
+    // フォールバック（DB未整備時の保険）
+    if ($type === 'list_icon' && $row && !empty($row['key_name'])) {
+      return equip_img_src("assets/icons/{$slot}/{$row['key_name']}.png");
+    }
+    if ($type === 'preview_equip' && $row && !empty($row['key_name'])) {
+      return equip_img_src("assets/avatars/{$slot}/{$row['key_name']}.png");
+    }
+    if ($type === 'preview_empty') {
+      return equip_img_src("assets/icons/{$slot}/empty.png");
+    }
+    return '';
+  }
+}
+
+/** 装備の更新（装備/解除） */
+if (!function_exists('updateUserEquipForSlot')) {
+  function updateUserEquipForSlot(PDO $pdo, int $user_id, string $slot, $equip_id): void {
+    $pdo->beginTransaction();
+    try {
+      $del = $pdo->prepare("DELETE FROM user_equips WHERE user_id=? AND slot=?");
+      $del->execute([$user_id, $slot]);
+      if (!empty($equip_id)) {
+        $ins = $pdo->prepare("INSERT INTO user_equips (user_id, slot, equip_id) VALUES (?, ?, ?)");
+        $ins->execute([$user_id, $slot, (int)$equip_id]);
+      }
+      $pdo->commit();
+    } catch (Throwable $e) {
+      if ($pdo->inTransaction()) $pdo->rollBack();
+      throw $e;
+    }
+  }
+}

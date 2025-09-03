@@ -14,3 +14,38 @@ function showEquipModal(equipment) {
 function closeModal() {
   document.getElementById("equipModal").style.display = "none";
 }
+// 一覧→プレビューの即時反映（装備は preview_equip を使う）
+document.querySelectorAll(".equip-card").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    const slot = btn.dataset.slot;
+    const id = btn.dataset.id;
+    const previewSrc = btn.dataset.previewSrc; // PHP 側で assets/avatars/{slot}/{avatar_path} を埋め込み
+
+    const previewImg = document.getElementById(`preview-${slot}`);
+    if (previewImg && previewSrc) {
+      previewImg.src = previewSrc;
+      previewImg.alt = `${slot} preview`;
+    }
+    const hid = document.getElementById(`equip-id-${slot}`);
+    if (hid) hid.value = id;
+  });
+});
+
+// 「外す」→ 未装備アイコン（assets/icons/{slot}/{empty_icon_path}）
+document.querySelectorAll(".btn-unequip").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    const slot = btn.dataset.slot;
+    const wrap = document.querySelector(
+      `.equip-preview__item[data-slot="${slot}"]`
+    );
+    const emptySrc = wrap ? wrap.dataset.emptySrc : "";
+
+    const previewImg = document.getElementById(`preview-${slot}`);
+    if (previewImg && emptySrc) {
+      previewImg.src = emptySrc;
+      previewImg.alt = `${slot} empty`;
+    }
+    const hid = document.getElementById(`equip-id-${slot}`);
+    if (hid) hid.value = "";
+  });
+});

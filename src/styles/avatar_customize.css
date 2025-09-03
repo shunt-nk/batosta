@@ -1,248 +1,139 @@
-/* タイトル */
-h1 {
-  font-size: 1.6rem;
-  margin: 8px 0 12px;
-  text-align: center;
-  color: #fff;
+/* レイアウト */
+.customize {
+  display: grid;
+  grid-template-columns: 1fr 420px;
+  gap: 24px;
+  padding: 18px;
+}
+@media (max-width: 1000px) {
+  .customize {
+    grid-template-columns: 1fr;
+  }
 }
 
-/* 上のカテゴリタブ */
-.slot-tabs {
+/* 左：5つのプレビュー(=タブ) を 3列グリッドで 2段配置 */
+.preview-bar {
+  display: grid;
+  grid-template-columns: repeat(3, 80px); /* 列幅はUIに合わせて調整可 */
+  gap: 16px;
+  margin: 8px 0 10px 0;
+  justify-content: center;
+  align-items: center;
+}
+
+/* 1マスのカード */
+.preview-slot {
+  width: 80px;
+  height: 80px;
+  border-radius: 14px;
+  background: #fff;
   display: flex;
-  gap: 12px;
   align-items: center;
   justify-content: center;
-  margin-bottom: 10px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+  border: 3px solid transparent;
 }
-.slot-tab {
+.preview-slot img {
   width: 64px;
   height: 64px;
-  border-radius: 14px;
-  background: #fff;
-  display: grid;
-  place-items: center;
-  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.08);
-  transition: transform 0.15s;
-}
-.slot-tab img {
-  width: 32px;
-  height: 32px;
   object-fit: contain;
 }
-.slot-tab:hover {
-  transform: translateY(-2px);
-}
-.slot-tab.active {
-  background: linear-gradient(180deg, #ff6aa5, #ff8a62);
+.preview-slot.active {
+  background: linear-gradient(160deg, #ff8aa3, #ffcc83);
+  border-color: #fff;
 }
 
-/* レイアウト：中央プレビュー + 右パネル */
-.customize-layout {
-  display: grid;
-  grid-template-columns: 1fr 380px;
-  gap: 16px;
-}
-
-/* 中央：アバター・現在装備 */
-.avatar-panel {
-  background: #484e88;
-  border-radius: 20px;
-  padding: 14px;
-}
-.avatar-preview-wrapper {
-  width: 360px;
-  aspect-ratio: 2/3;
-  position: relative;
-  background: #ffffff;
-  border-radius: 20px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  overflow: hidden;
-  margin: 0 auto 8px;
-}
-.base-layer {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  z-index: 0;
-}
-/* 地面の影 */
-.avatar-container::after {
-  content: "";
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  bottom: -4px;
-  width: 56%;
-  height: 16px;
-  background: rgba(0, 0, 0, 0.25);
-  filter: blur(6px);
-  border-radius: 50%;
-}
-
-/* 現在装備の並び */
-.current-equips {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 8px;
-  margin-top: 8px;
-}
-.current-equip-thumb {
-  position: relative;
-  width: 100%;
-  padding-top: 100%;
+/* 1行目3列目のダミー（クリック不可・見た目なし） */
+.preview-slot.spacer {
+  background: transparent;
+  box-shadow: none;
   border: none;
-  background: #fff;
-  border-radius: 12px;
-  display: block;
-  overflow: hidden;
+  pointer-events: none;
 }
-.current-equip-thumb img {
-  position: absolute;
-  inset: 8px;
-  width: calc(100% - 16px);
-  height: calc(100% - 16px);
-  object-fit: contain;
-}
-.current-equip-thumb .remove-btn {
-  position: absolute;
-  top: -6px;
-  right: -6px;
-  background: crimson;
-  color: #fff;
-  border-radius: 50%;
-  padding: 2px 6px;
-  font-size: 0.8rem;
-  line-height: 1;
-  cursor: pointer;
-}
-.current-equip-thumb.empty {
-  background: rgba(255, 255, 255, 0.5);
-}
-
-/* ステータス */
-.status-summary {
-  text-align: center;
-  margin-top: 6px;
-  color: #fff;
-}
-
-/* 右：プレビュー + グリッド */
-.right-panel {
+/* アバター表示 */
+.avatar-stage {
   display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-.detail-card {
-  background: #db9963;
-  color: #fff;
-  border-radius: 14px;
-  padding: 12px;
-  display: flex;
-  gap: 12px;
   align-items: center;
+  justify-content: center;
+  height: 520px;
 }
-.detail-thumb {
-  width: 120px;
-  height: 120px;
-  border-radius: 12px;
-  background: #fff;
-  display: grid;
-  place-items: center;
+
+/* 右：詳細カード */
+.right .detail-card {
+  background: #e6a06f;
+  color: #fff;
+  border-radius: 16px;
+  padding: 16px;
+  display: flex;
+  gap: 16px;
+  align-items: center;
 }
 .detail-thumb img {
-  width: 90px;
-  height: 90px;
+  width: 140px;
+  height: 140px;
   object-fit: contain;
+  background: #fff;
+  border-radius: 12px;
+  padding: 12px;
 }
 .detail-meta h2 {
-  margin: 2px 0 6px;
+  margin: 0 0 6px 0;
 }
-.detail-empty {
-  padding: 20px 10px;
+.detail-actions {
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.equipped-badge {
+  font-weight: 900;
 }
 
+/* 装備一覧 */
 .grid-title {
+  margin: 14px 0 8px 0;
   color: #fff;
-  margin: 0 0 4px;
 }
-
 .equip-grid {
-  background: #444b8a;
-  border-radius: 10px;
-  padding: 12px;
+  background: #3a4a78;
+  padding: 16px;
+  border-radius: 16px;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
+  gap: 16px;
 }
 .equip-thumb {
   background: #fff;
-  border: none;
-  border-radius: 10px;
-  padding: 5px;
-  width: 100%;
-  aspect-ratio: 1/1;
-  cursor: pointer;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: transform 0.2s;
-}
-.equip-thumb:hover {
-  transform: scale(1.05);
+  height: 110px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+  border: 4px solid transparent;
 }
 .equip-thumb img {
-  width: 100%;
-  height: 100%;
+  width: 72px;
+  height: 72px;
   object-fit: contain;
 }
+.equip-thumb.selected {
+  border-color: #ffddb8;
+}
 
-/* モーダルは既存そのまま */
-.modal {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.6);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-}
-.modal-content {
-  background: #fff;
-  color: #000;
-  border-radius: 10px;
-  padding: 2rem;
-  max-width: 300px;
-  width: 100%;
-  text-align: center;
-  position: relative;
-}
-.close-btn {
-  position: absolute;
-  top: 10px;
-  right: 15px;
-  cursor: pointer;
-  font-size: 1.5rem;
-}
-.equip-confirm-btn {
-  background: #4d5fa9;
-  color: #fff;
-  padding: 0.5rem 1rem;
+/* ボタン */
+.btn {
+  padding: 10px 16px;
   border: none;
-  border-radius: 6px;
-  margin-top: 1rem;
+  border-radius: 12px;
   cursor: pointer;
+  font-weight: 900;
 }
-
-/* レスポンシブ */
-@media (max-width: 960px) {
-  .customize-layout {
-    grid-template-columns: 1fr;
-  }
-  .detail-card {
-    order: -1;
-  }
+.btn.primary {
+  background: #db9963;
+  color: #fff;
+}
+.btn.ghost {
+  background: #ffffff;
+  color: #db9963;
 }
