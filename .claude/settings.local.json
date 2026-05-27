@@ -1,7 +1,11 @@
 {
   "permissions": {
     "allow": [
-      "Bash(open -a Docker)"
+      "Bash(open -a Docker)",
+      "Bash(git pull:*)",
+      "Bash(ls /Users/s2240025/Desktop/batosta/src/*.php | xargs -I{} basename {})",
+      "Bash(git add:*)",
+      "Bash(rm /Users/s2240025/Desktop/batosta/api/debug.php && git add api/debug.php && git commit -m \"$\\(cat <<'EOF'\ndebug.phpを削除\n\nCo-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>\nEOF\n\\)\" && git push origin main)"
     ]
   }
 }
