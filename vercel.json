@@ -1,15 +1,15 @@
 {
   "functions": {
-    "src/*.php": {
+    "api/*.php": {
       "runtime": "vercel-php@0.7.2"
     }
   },
-  "routes": [
-    { "src": "/includes/.*",       "status": 404 },
-    { "src": "/assets/(.*)",       "dest": "/src/assets/$1" },
-    { "src": "/styles/(.*)",       "dest": "/src/styles/$1" },
-    { "src": "/js/(.*)",           "dest": "/src/js/$1" },
-    { "src": "/([^/]+\\.php)",     "dest": "/src/$1" },
-    { "src": "/",                  "dest": "/src/index.php" }
+  "rewrites": [
+    { "source": "/includes/(.*)",  "destination": "/404" },
+    { "source": "/assets/:path*",  "destination": "/src/assets/:path*" },
+    { "source": "/styles/:path*",  "destination": "/src/styles/:path*" },
+    { "source": "/js/:path*",      "destination": "/src/js/:path*" },
+    { "source": "/:file.php",      "destination": "/api/:file.php" },
+    { "source": "/",               "destination": "/api/index.php" }
   ]
 }
