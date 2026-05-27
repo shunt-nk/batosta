@@ -311,50 +311,34 @@ function getUserGender(PDO $pdo, int $user_id): string {
 
 /** 性別に合った初期 outfit の equipment_id を取得（なければ null） */
 function findInitialOutfitId(PDO $pdo, string $gender): ?int {
-  // gender_scope がある場合のみ使う（ない環境でも例外で落ちないように 2段階）
+  // 画像パス名から gender を推定（gender_scope カラム不要）
+  $pattern = $gender === 'female'
+    ? '(^|[_/])female([_.]|$)'
+    : '(^|[_/])male([_.]|$)';
   try {
     $st = $pdo->prepare("
-      SELECT id
-      FROM equipments
+      SELECT id FROM equipments
       WHERE slot IN ('outfit','armor') AND COALESCE(is_initial,0)=1
-        AND (gender_scope=? OR gender_scope='unisex')
-      ORDER BY (gender_scope='unisex') ASC, id ASC
-      LIMIT 1
+        AND image_path ~* ?
+      ORDER BY id ASC LIMIT 1
     ");
-    $st->execute([$gender]);
+    $st->execute([$pattern]);
     $id = $st->fetchColumn();
     if ($id) return (int)$id;
-  } catch (\Throwable $e) {
-    // gender_scope 無しの環境：画像名から male/female を推定
-    if ($gender === 'female') {
-      $st = $pdo->query("
-        SELECT id FROM equipments
-        WHERE slot IN ('outfit','armor') AND COALESCE(is_initial,0)=1
-          AND image_path ~* '(^|[_/])female([_.]|$)'
-        ORDER BY id ASC LIMIT 1
-      ");
-      $id = $st->fetchColumn();
-      if ($id) return (int)$id;
-    } else {
-      $st = $pdo->query("
-        SELECT id FROM equipments
-        WHERE slot IN ('outfit','armor') AND COALESCE(is_initial,0)=1
-          AND image_path ~* '(^|[_/])male([_.]|$)'
-        ORDER BY id ASC LIMIT 1
-      ");
-      $id = $st->fetchColumn();
-      if ($id) return (int)$id;
-    }
-  }
+  } catch (\Throwable $e) { /* fallthrough */ }
 
-  // それでも無ければ is_initial=1 の先頭
-  $st = $pdo->query("
-    SELECT id FROM equipments
-    WHERE slot IN ('outfit','armor') AND COALESCE(is_initial,0)=1
-    ORDER BY id ASC LIMIT 1
-  ");
-  $id = $st->fetchColumn();
-  return $id ? (int)$id : null;
+  // フォールバック: is_initial=1 の先頭
+  try {
+    $st = $pdo->query("
+      SELECT id FROM equipments
+      WHERE slot IN ('outfit','armor') AND COALESCE(is_initial,0)=1
+      ORDER BY id ASC LIMIT 1
+    ");
+    $id = $st->fetchColumn();
+    return $id ? (int)$id : null;
+  } catch (\Throwable $e) {
+    return null;
+  }
 }
 
 /** outfit を未装備なら、性別に合った初期 outfit を装備として保存 */

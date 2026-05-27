@@ -54,6 +54,10 @@ if (count($incoming) < 4) {
   echo json_encode(['success'=>false,'error'=>'MISSING_SLOTS']); exit;
 }
 
+// トランザクション外で取得（PostgreSQLはトランザクション内でprepare失敗するとABORTED状態になるため）
+$gender          = $genderFromClient ?? 'male';
+$desiredOutfitId = findInitialOutfitId($pdo, $gender);
+
 try {
   $pdo->beginTransaction();
 
@@ -77,9 +81,6 @@ try {
     }
   }
 
-  // 性別を確定（client 最優先、無ければ現状維持）
-  $gender = $genderFromClient ?? 'male';
-
   // avatars.gender を UPSERT
   $chkA = $pdo->prepare("SELECT id FROM avatars WHERE user_id=? LIMIT 1");
   $chkA->execute([$user_id]);
@@ -88,9 +89,6 @@ try {
   } else {
     $pdo->prepare("INSERT INTO avatars (user_id, gender) VALUES (?, ?)")->execute([$user_id, $gender]);
   }
-
-  // 目標の初期 outfit を gender から取得
-  $desiredOutfitId = findInitialOutfitId($pdo, $gender); // 例: female→8, male→9（DBに依存）
 
   if ($desiredOutfitId) {
     // 現在の outfit が何かを見る
