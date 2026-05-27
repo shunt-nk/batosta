@@ -1,5 +1,5 @@
 <?php
-session_start();
+require_once 'includes/session.php';
 require 'includes/task_data.php'; // 教科・種類・時間リストを取得（配列）
 
 // セッションに動的に追加した種類/時間があれば取得

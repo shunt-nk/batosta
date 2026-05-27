@@ -1,7 +1,7 @@
 <?php
 // battle.php — mockup styled (自分HP/SP数値のみ表示、相手はゲージだけ)
 declare(strict_types=1);
-session_start();
+require_once 'includes/session.php';
 require 'includes/db.php';
 require 'includes/functions.php';
 require 'includes/skill_repo.php';

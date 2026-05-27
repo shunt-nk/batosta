@@ -1,5 +1,5 @@
 <?php
-session_start();
+require_once 'includes/session.php';
 require 'includes/db.php';
 
 if (!isset($_SESSION['user'])) {
@@ -71,7 +71,7 @@ $slot = $_GET['slot'] ?? '';
 $sort = $_GET['sort'] ?? '';
 
 $sql = "
-  SELECT e.*, GROUP_CONCAT(m.name, ':', er.quantity) AS materials
+  SELECT e.*, STRING_AGG(m.name || ':' || er.quantity::text, ',') AS materials
   FROM equipments e
   LEFT JOIN equipment_requirements er ON e.id = er.equipment_id
   LEFT JOIN materials m ON er.material_id = m.id
@@ -173,10 +173,12 @@ $current_page = 'create';
             </div>
             <ul class="materials">
               <?php
-              $requirements = explode(",", $eq['materials']);
+              $requirements = $eq['materials'] !== null && $eq['materials'] !== '' ? explode(",", $eq['materials']) : [];
               $canMake = true;
               foreach ($requirements as $r) {
-                list($mat, $qty) = explode(":", $r);
+                $parts = explode(":", $r);
+                if (count($parts) < 2) continue;
+                list($mat, $qty) = $parts;
                 $qty = (int)$qty;
                 $mat_id = $material_map[$mat] ?? null;
                 $have = $mat_id && isset($user_materials[$mat_id]) ? $user_materials[$mat_id] : 0;

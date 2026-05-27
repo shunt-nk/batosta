@@ -1,5 +1,5 @@
 <?php
-session_start();
+require_once 'includes/session.php';
 require 'includes/db.php';
 
 if (!isset($_SESSION["user"]) || !isset($_SESSION["study"])) {

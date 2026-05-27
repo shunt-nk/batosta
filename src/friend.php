@@ -1,7 +1,7 @@
 <?php
 // src/friend.php
 declare(strict_types=1);
-session_start();
+require_once 'includes/session.php';
 require 'includes/db.php';
 require 'includes/functions.php'; // loadAvatarStacks, renderAvatarFull, getAvatarStatusWithEquip
 

@@ -1,7 +1,7 @@
 <?php
 // profile.php（自分/他人 兼用・フレンドCTA付き）
 declare(strict_types=1);
-session_start();
+require_once 'includes/session.php';
 require 'includes/db.php';
 require 'includes/functions.php'; // hasAvatarBody, fetchSelectedPartsBySlots, fetchEquipPaths, renderAvatarFull, getAvatarStatusWithEquip, ensureInitialOutfitEquipped
 
@@ -13,6 +13,30 @@ $auth_id   = (int)$auth['id'];
 $view_id   = isset($_GET['uid']) ? max(0, (int)$_GET['uid']) : $auth_id;
 $isSelf    = ($view_id === $auth_id);
 
+/* --- スロット名（DB→UI の吸収） --- */
+function db_to_ui_slot(string $db): string {
+  static $map = [
+    'weapon'=>'weapon','shield'=>'shield','head'=>'head',
+    'outfit'=>'outfit','armor'=>'outfit','body'=>'outfit',
+    'boots'=>'boots','legs'=>'boots',
+  ];
+  return $map[$db] ?? $db;
+}
+
+/* --- 未装備アイコンの取得（テーブル無くても empty.png を使う） --- */
+function fetch_empty_icon_map_profile(PDO $pdo, array $uiSlots): array {
+  $map = [];
+  try {
+    $st = $pdo->query("SELECT slot, empty_icon_path FROM equip_slot_master");
+    foreach ($st->fetchAll(PDO::FETCH_ASSOC) as $r) {
+      $ui = db_to_ui_slot((string)$r['slot']);
+      $map[$ui] = trim((string)$r['empty_icon_path']);
+    }
+  } catch (Throwable $e) { /* テーブル無しでもOK */ }
+  foreach ($uiSlots as $s) if (!isset($map[$s]) || $map[$s]==='') $map[$s] = 'empty.png';
+  return $map;
+}
+
 /* --- アバター作成済み判定（自分の場合のみ ensureInitialOutfitEquipped を実行） --- */
 $needsAvatar = !hasAvatarBody($pdo, $view_id);
 if ($isSelf && !$needsAvatar && function_exists('ensureInitialOutfitEquipped')) {
@@ -20,24 +44,36 @@ if ($isSelf && !$needsAvatar && function_exists('ensureInitialOutfitEquipped')) 
 }
 
 /* --- 対象ユーザー情報（カバー／アイコン／プレゼンス／ユーザー名） --- */
-$stmt = $pdo->prepare("
-  SELECT id, username, profile_cover_url, profile_icon_url, presence
-  FROM users WHERE id = ? LIMIT 1
-");
-$stmt->execute([$view_id]);
-$u = $stmt->fetch(PDO::FETCH_ASSOC);
+// profile_cover_url は後から追加されたカラムのため、存在しない環境に対応
+$u = null;
+try {
+  $stmt = $pdo->prepare("
+    SELECT id, username, profile_cover_url, profile_icon_url, presence
+    FROM users WHERE id = ? LIMIT 1
+  ");
+  $stmt->execute([$view_id]);
+  $u = $stmt->fetch(PDO::FETCH_ASSOC);
+} catch (\Throwable $e) {
+  // profile_cover_url が無い環境のフォールバック
+  $stmt = $pdo->prepare("
+    SELECT id, username, profile_icon_url, presence
+    FROM users WHERE id = ? LIMIT 1
+  ");
+  $stmt->execute([$view_id]);
+  $u = $stmt->fetch(PDO::FETCH_ASSOC);
+}
 if (!$u) { header('Location: friend.php'); exit; }
 
-$coverUrl = $u['profile_cover_url'] ?? '';
-$iconUrl  = $u['profile_icon_url']  ?? '';
-$presence = $u['presence']          ?? 'offline';
-$username = $u['username']          ?? 'ユーザー名';
+$coverUrl = (string)($u['profile_cover_url'] ?? '');
+$iconUrl  = (string)($u['profile_icon_url']  ?? '');
+$presence = (string)($u['presence']          ?? 'offline');
+$username = (string)($u['username']          ?? 'ユーザー名');
 
 /* --- 学習時間（簡易集計：対象ユーザー） --- */
 $totalStmt = $pdo->prepare("
   SELECT 
     COALESCE(SUM(duration_minutes),0) AS total,
-    COALESCE(SUM(CASE WHEN started_at >= DATE_SUB(CURDATE(), INTERVAL 7 DAY) THEN duration_minutes END),0) AS week
+    COALESCE(SUM(CASE WHEN started_at >= CURRENT_DATE - INTERVAL '7 days' THEN duration_minutes END),0) AS week
   FROM study_logs WHERE user_id=?
 ");
 $totalStmt->execute([$view_id]);
@@ -57,7 +93,7 @@ if ($needsAvatar) {
   $parts = []; $equipPaths = [];
 } else {
   $parts      = fetchSelectedPartsBySlots($pdo, $view_id, ['body','hair','eyes','mouth','hand_base','hand_weapon']);
-  $equipPaths = fetchEquipPaths($pdo, $view_id);
+  $equipPaths = fetchEquipPaths($pdo, $view_id); // ← ここは avatars（プレビュー）として重ね描画
   unset($parts['hand']);
   if (!empty($equipPaths['weapon']) && !empty($parts['hand_weapon'])) {
     $parts['hand'] = $parts['hand_weapon'];
@@ -66,17 +102,55 @@ if ($needsAvatar) {
   }
 }
 
-/* --- 装備画像（右側の5枠表示用） --- */
-$stmt = $pdo->prepare("
-  SELECT uae.slot AS slot, e.image_path AS image_path
-  FROM user_avatar_equipments uae
-  JOIN equipments e ON uae.equipment_id = e.id
-  WHERE uae.user_id = ?
-");
-$stmt->execute([$view_id]);
-$equipments = [];
-foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $r) {
-  $equipments[$r['slot']] = $r['image_path'];
+/* --- 装備アイコン（右側の5枠表示用：icons を使う） --- */
+$SLOTS_UI = ['weapon','shield','head','outfit','boots'];
+$emptyIconMap = fetch_empty_icon_map_profile($pdo, $SLOTS_UI);
+
+/* icon_path が無い環境でも動くように 2段階クエリ */
+$rows = [];
+try {
+  $stmt = $pdo->prepare("
+    SELECT uae.slot AS slot_db, e.icon_path, e.image_path
+    FROM user_avatar_equipments uae
+    JOIN equipments e ON uae.equipment_id = e.id
+    WHERE uae.user_id = ?
+  ");
+  $stmt->execute([$view_id]);
+  $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+} catch (Throwable $e) {
+  // fallback（icon_path 列が無い）: image_path のみ
+  $stmt = $pdo->prepare("
+    SELECT uae.slot AS slot_db, '' AS icon_path, e.image_path
+    FROM user_avatar_equipments uae
+    JOIN equipments e ON uae.equipment_id = e.id
+    WHERE uae.user_id = ?
+  ");
+  $stmt->execute([$view_id]);
+  $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+/* build_icon_src は functions.php に定義済み（無ければ自作してもOK） */
+$gearIcons = array_fill_keys($SLOTS_UI, ''); // 最後に empty で埋める
+foreach ($rows as $r) {
+  $slotUi    = db_to_ui_slot((string)$r['slot_db']);
+  if (!in_array($slotUi, $SLOTS_UI, true)) continue;
+
+  $iconFile  = trim((string)($r['icon_path'] ?? ''));
+  if ($iconFile === '' && !empty($r['image_path'])) {
+    // 互換: image_path のファイル名をアイコンとして使う
+    $iconFile = basename(trim((string)$r['image_path']));
+  }
+  $src = $iconFile !== ''
+    ? build_icon_src($slotUi, $iconFile)
+    : build_icon_src($slotUi, $emptyIconMap[$slotUi] ?? 'empty.png');
+
+  $gearIcons[$slotUi] = $src;
+}
+// 未装備スロットを empty で補完
+foreach ($gearIcons as $s => $v) {
+  if ($v === '' || $v === null) {
+    $gearIcons[$s] = build_icon_src($s, $emptyIconMap[$s] ?? 'empty.png');
+  }
 }
 
 /* 5枠を 2+3 に並べる：上段(weapon, shield)／下段(head, outfit, boots) */
@@ -207,14 +281,12 @@ if (!$isSelf) {
         </div>
 
         <div class="gear-grid">
-          <?php foreach ($gearLayout as $slot): ?>
+          <?php foreach (['weapon','shield',null,'head','outfit','boots'] as $slot): ?>
             <?php if ($slot === null): ?>
               <div class="gear-cell"></div>
             <?php else: ?>
               <div class="gear-cell">
-                <?php if (!empty($equipments[$slot])): ?>
-                  <img src="<?= htmlspecialchars($equipments[$slot]) ?>" alt="<?= htmlspecialchars($slot) ?>">
-                <?php endif; ?>
+                <img src="<?= htmlspecialchars($gearIcons[$slot], ENT_QUOTES) ?>" alt="<?= htmlspecialchars($slot) ?>">
               </div>
             <?php endif; ?>
           <?php endforeach; ?>
@@ -231,7 +303,7 @@ if (!$isSelf) {
             FROM user_titles ut
             JOIN titles t ON ut.title_id=t.id
             WHERE ut.user_id=?
-            ORDER BY ut.updated_at DESC
+            ORDER BY ut.id DESC
             LIMIT 8
           ");
           $ts->execute([$view_id]);

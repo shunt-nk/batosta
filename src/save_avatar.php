@@ -1,8 +1,7 @@
 <?php
 // save_avatar.php
 declare(strict_types=1);
-session_start();
-
+require_once 'includes/session.php';
 require 'includes/db.php';
 require 'includes/functions.php'; // findInitialOutfitId を使う
 

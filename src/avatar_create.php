@@ -1,7 +1,7 @@
 <?php
 // avatar_create.php
 declare(strict_types=1);
-session_start();
+require_once 'includes/session.php';
 require 'includes/db.php';
 require 'includes/functions.php'; // partOptionsCompat, fetchSelectedPartsBySlots, fetchEquipPaths など
 if (!isset($_SESSION['user'])) { header('Location: index.php'); exit; }
@@ -80,7 +80,7 @@ function findInitialOutfit(PDO $pdo, string $gender): ?string {
     SELECT image_path
     FROM equipments
     WHERE slot='outfit' AND is_initial=1
-      AND image_path REGEXP ?
+      AND image_path ~* ?
     ORDER BY id ASC
     LIMIT 1
   ");
@@ -103,7 +103,7 @@ function findInitialOutfit(PDO $pdo, string $gender): ?string {
   $st = $pdo->query("
     SELECT image_path
     FROM equipments
-    WHERE slot='outfit' AND image_path REGEXP 'outfit.*base(01)?'
+    WHERE slot='outfit' AND image_path ~* 'outfit.*base(01)?'
     ORDER BY id ASC
     LIMIT 1
   ");
@@ -129,7 +129,6 @@ $equipPaths = fetchEquipPaths($pdo, $user_id); // ['outfit'=>'...', 'weapon'=>'.
 </head>
 <body>
 <div class="container">
-  <h2>アバター作成</h2>
   <div class="layout">
     <!-- 左：4タブ -->
     <nav class="leftnav" id="tabs">

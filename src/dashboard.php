@@ -1,8 +1,7 @@
 <?php
 // dashboard.php（既存の進捗バー＆宿題履歴は機能そのまま／見た目だけ整形）
 declare(strict_types=1);
-session_start();
-
+require_once 'includes/session.php';
 require 'includes/db.php';
 require 'includes/functions.php'; // hasAvatarBody, loadAvatarStacks, renderAvatarFull, getAvatarStatusWithEquip, requiredExp
 

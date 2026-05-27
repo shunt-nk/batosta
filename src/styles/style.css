@@ -52,14 +52,14 @@ main {
 }
 /* 服 */
 .slot-outfit {
-  z-index: 6;
+  z-index: 8;
 }
 /* 武器と手（手は最前＝握って見える） */
 .slot-weapon {
-  z-index: 9;
+  z-index: 5;
 }
 .slot-hand {
-  z-index: 5;
+  z-index: 7;
 }
 .progress-bar {
   background: #eee;

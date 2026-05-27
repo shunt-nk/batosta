@@ -1,8 +1,9 @@
 <?php
+require_once 'includes/session.php';
 require 'includes/db.php';
-session_start();
 
-$user_id = $_SESSION["user"]["id"];
+$user_id  = $_SESSION["user"]["id"];
+$username = $_SESSION["user"]["username"] ?? '';
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $gender = $_POST["gender"];
@@ -43,14 +44,6 @@ $avatar = $stmt->fetch();
   </label>
   <button type="submit">保存</button>
 </form>
-
-<?php
-require 'includes/db.php';
-session_start();
-
-$user_id = $_SESSION["user"]["id"];
-$username = $_SESSION["user"]["username"];
-?>
 
 <h2><?= htmlspecialchars($username) ?> さんのアバター</h2>
 

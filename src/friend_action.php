@@ -1,7 +1,7 @@
 <?php
 // src/friend_action.php
 declare(strict_types=1);
-session_start();
+require_once 'includes/session.php';
 require 'includes/db.php';
 
 if (!isset($_SESSION['user'])) { header('Location: index.php'); exit; }

@@ -1,5 +1,5 @@
 <?php
-session_start();
+require_once 'includes/session.php';
 require 'includes/db.php';
 
 if (!isset($_SESSION['user'])) {
@@ -16,7 +16,7 @@ switch ($category) {
       SELECT u.id, u.username, COALESCE(SUM(s.duration_minutes), 0) AS value
       FROM users u
       LEFT JOIN study_logs s ON u.id = s.user_id
-      AND s.study_date >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)
+      AND s.study_date >= CURRENT_DATE - INTERVAL '7 days'
       GROUP BY u.id
       ORDER BY value DESC
     ");

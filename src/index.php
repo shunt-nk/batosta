@@ -1,7 +1,7 @@
 <?php
 // index.php
 declare(strict_types=1);
-session_start();
+require_once 'includes/session.php';
 require __DIR__ . '/includes/db.php';
 
 /**
@@ -53,7 +53,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 // 認証OK → セッション保存
                 $_SESSION['user'] = [
                     'id'    => (int)$user['id'],
-                    'name'  => $user['name'] ?? '',
+                    'name'  => $user['username'] ?? $user['name'] ?? '',
                     'email' => $user['email'] ?? '',
                 ];
 

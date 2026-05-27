@@ -100,8 +100,8 @@
 }
 .avatar-container {
   position: relative;
-  width: 160px;
-  height: 160px;
+  width: 300px;
+  height: 350px;
 }
 .avatar-container img {
   position: absolute;
