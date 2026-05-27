@@ -12,6 +12,9 @@ $sslmode = getenv('DB_SSLMODE')  ?: 'require';
 try {
     $pdo = new PDO("pgsql:host=$host;port=$port;dbname=$dbname;sslmode=$sslmode", $user, $pass);
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    // エミュレートPreparedStatement: prepare()をPHP側で処理しサーバーに送らない
+    // → トランザクション内でprepare失敗によるABORTEDを防ぐ
+    $pdo->setAttribute(PDO::ATTR_EMULATE_PREPARES, true);
 } catch (PDOException $e) {
     die("DB接続エラー: " . $e->getMessage());
 }

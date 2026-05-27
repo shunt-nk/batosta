@@ -64,20 +64,9 @@ try {
   // 4スロット保存（置換）
   $pdo->prepare("DELETE FROM user_avatar_parts WHERE user_id=? AND slot IN ('body','hair','eyes','mouth')")
       ->execute([$user_id]);
-  error_log('[save_avatar] DELETE OK');
-  error_log('[save_avatar] incoming: ' . json_encode($incoming));
-
-  // part_id が catalog に存在するか確認
-  foreach ($incoming as $slot => $pid) {
-    $chk = $pdo->prepare("SELECT 1 FROM avatar_parts_catalog WHERE id=? LIMIT 1");
-    $chk->execute([$pid]);
-    error_log("[save_avatar] catalog check: slot=$slot pid=$pid exists=" . ($chk->fetchColumn() ? 'YES' : 'NO'));
-  }
 
   $insParts = $pdo->prepare("INSERT INTO user_avatar_parts (user_id, slot, part_id) VALUES (?,?,?)");
-  error_log('[save_avatar] PREPARE INSERT OK');
   foreach ($incoming as $slot => $pid) {
-    error_log("[save_avatar] INSERT part: slot=$slot pid=$pid");
     $insParts->execute([$user_id, $slot, $pid]);
   }
 
