@@ -64,8 +64,12 @@ try {
   // 4スロット保存（置換）
   $pdo->prepare("DELETE FROM user_avatar_parts WHERE user_id=? AND slot IN ('body','hair','eyes','mouth')")
       ->execute([$user_id]);
+  error_log('[save_avatar] DELETE OK');
   $insParts = $pdo->prepare("INSERT INTO user_avatar_parts (user_id, slot, part_id) VALUES (?,?,?)");
-  foreach ($incoming as $slot => $pid) $insParts->execute([$user_id, $slot, $pid]);
+  foreach ($incoming as $slot => $pid) {
+    error_log("[save_avatar] INSERT part: slot=$slot pid=$pid");
+    $insParts->execute([$user_id, $slot, $pid]);
+  }
 
   // hand_* 未保存なら補完
   foreach (['hand_base','hand_weapon'] as $hs) {
