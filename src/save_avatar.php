@@ -119,6 +119,7 @@ try {
   echo json_encode(['success'=>true]);
 } catch (Throwable $e) {
   if ($pdo->inTransaction()) $pdo->rollBack();
+  error_log('[save_avatar] ERROR: ' . $e->getMessage() . ' | File: ' . $e->getFile() . ':' . $e->getLine());
   http_response_code(500);
   echo json_encode(['success'=>false,'error'=>'SERVER_ERROR','detail'=>$e->getMessage()]);
 }
